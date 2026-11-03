@@ -41,6 +41,9 @@ jobs:
       - name: Keep preview shortcut on signup/sign-in screen only
         run: python3 scripts/apply_auth_preview_scope.py
 
+      - name: Add optional encrypted remember-login feature
+        run: python3 scripts/apply_remember_login.py
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
