@@ -33,6 +33,9 @@ jobs:
       - name: Apply visual and scrolling upgrades
         run: python3 scripts/apply_ui_upgrade.py
 
+      - name: Apply consistent app-wide light and dark themes
+        run: python3 scripts/apply_theme_consistency.py
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
