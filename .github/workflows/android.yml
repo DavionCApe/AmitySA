@@ -44,6 +44,9 @@ jobs:
       - name: Add optional encrypted remember-login feature
         run: python3 scripts/apply_remember_login.py
 
+      - name: Print Kotlin compile context for targeted repairs
+        run: python3 scripts/print_compile_context.py
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
