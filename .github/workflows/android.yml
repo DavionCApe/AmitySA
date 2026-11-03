@@ -36,6 +36,9 @@ jobs:
       - name: Apply consistent app-wide light and dark themes
         run: python3 scripts/apply_theme_consistency.py
 
+      - name: Keep preview shortcut on signup/sign-in screen only
+        run: python3 scripts/apply_auth_preview_scope.py
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
