@@ -24,29 +24,29 @@ full_scheme = '''    // Use one selected palette across standard controls, cards
         onSurface = theme.ink, surfaceVariant = theme.canvas,
         onSurfaceVariant = theme.inkSoft, outline = theme.inkSoft
     )'''
-pattern = r'    val scheme = if \\(theme\\.dark\\)\\s*darkColorScheme\\([^\\n]*\\)\\s*else\\s*lightColorScheme\\([^\\n]*\\)'
+pattern = r'    val scheme = if [(]theme[.]dark[)]\s*darkColorScheme\([^\n]*\)\s*else\s*lightColorScheme\([^\n]*\)'
 if "onSurfaceVariant = theme.inkSoft" not in s:
     s, count = re.subn(pattern, full_scheme, s, count=1)
     if count != 1:
         raise SystemExit("Could not locate the app-wide Material theme palette block")
 
-old = '    MaterialTheme(colorScheme = scheme) {\\n        CompositionLocalProvider(LocalAmity provides theme) {'
-new = '    MaterialTheme(colorScheme = scheme) {\\n        Surface(modifier = Modifier.fillMaxSize(), color = theme.canvas) {\\n        CompositionLocalProvider(LocalAmity provides theme) {'
+old = '    MaterialTheme(colorScheme = scheme) {\n        CompositionLocalProvider(LocalAmity provides theme) {'
+new = '    MaterialTheme(colorScheme = scheme) {\n        Surface(modifier = Modifier.fillMaxSize(), color = theme.canvas) {\n        CompositionLocalProvider(LocalAmity provides theme) {'
 if 'Surface(modifier = Modifier.fillMaxSize(), color = theme.canvas)' not in s:
     if old not in s:
         raise SystemExit("Could not locate the root theme provider")
     s = s.replace(old, new, 1)
-    tail = '            if (showPopup) LaunchPopup { showPopup = false }\\n        }\\n    }\\n}'
-    replacement = '            if (showPopup) LaunchPopup { showPopup = false }\\n        }\\n        }\\n    }\\n}'
+    tail = '            if (showPopup) LaunchPopup { showPopup = false }\n        }\n    }\n}'
+    replacement = '            if (showPopup) LaunchPopup { showPopup = false }\n        }\n        }\n    }\n}'
     if tail not in s:
         raise SystemExit("Could not locate the end of the root theme provider")
     s = s.replace(tail, replacement, 1)
 main.write_text(s, encoding="utf-8")
 
 h = header.read_text(encoding="utf-8")
-if 'internal fun ScreenHeader(title: String, onBack: () -> Unit) {\\n    val theme = LocalAmity.current' not in h:
+if 'internal fun ScreenHeader(title: String, onBack: () -> Unit) {\n    val theme = LocalAmity.current' not in h:
     h = h.replace('internal fun ScreenHeader(title: String, onBack: () -> Unit) {',
-                  'internal fun ScreenHeader(title: String, onBack: () -> Unit) {\\n    val theme = LocalAmity.current', 1)
+                  'internal fun ScreenHeader(title: String, onBack: () -> Unit) {\n    val theme = LocalAmity.current', 1)
 h = h.replace('.background(Brush.verticalGradient(listOf(HeaderTop, HeaderBottom)))',
               '.background(Brush.verticalGradient(listOf(theme.primary, theme.primary.copy(alpha = 0.84f))))', 1)
 h = h.replace('"←", color = Color.White, fontSize = 24.sp,', '"←", color = theme.onAccent, fontSize = 24.sp,', 1)
