@@ -30,6 +30,9 @@ jobs:
       - name: Apply Kotlin compile fixes
         run: python3 scripts/apply_build_fixes.py
 
+      - name: Apply visual and scrolling upgrades
+        run: python3 scripts/apply_ui_upgrade.py
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
