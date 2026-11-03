@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          archive="amitysa-stage8-play-ready (1).zip"
+          archive="amitysa-stage8-play-ready%20(1).zip"
           test -f "$archive"
           mkdir -p _amitysa_source
           unzip -q "$archive" -d _amitysa_source
