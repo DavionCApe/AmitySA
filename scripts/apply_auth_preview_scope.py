@@ -1,117 +1,72 @@
 from pathlib import Path
-import re
 
 main = Path("app/src/main/java/com/amitysa/app/MainActivity.kt")
 if not main.is_file():
     raise SystemExit(f"AmitySA MainActivity.kt was not found: {main}")
 
-source = main.read_text(encoding="utf-8")
+source = main.read_text(encoding="utf-8").replace("\r\n", "\n")
 
-# Locate AuthScreen without depending on indentation or line-ending style.
-start_match = re.search(r"(?m)^\s*private fun AuthScreen\s*\(", source)
-if not start_match:
-    raise SystemExit("Could not locate the AuthScreen declaration")
+# Use stable declaration markers rather than an indentation-sensitive regex.
+auth_start = source.find("private fun AuthScreen(")
+mode_start = source.find("private fun ModePill(", auth_start + 1)
+if auth_start < 0 or mode_start < 0:
+    raise SystemExit("Could not locate AuthScreen and ModePill boundaries")
 
-end_match = re.search(
-    r"(?m)^\s*@Composable\s*\n\s*private fun ModePill\b",
-    source[start_match.end():],
-)
-if not end_match:
-    raise SystemExit("Could not determine where AuthScreen ends")
-
-auth_start = start_match.start()
-auth_end = start_match.end() + end_match.start()
-auth = source[auth_start:auth_end]
-
+auth = source[auth_start:mode_start]
 label = 'Text("Skip signup for now · Preview app"'
-if auth.count(label) != 1:
+global_count = source.count(label)
+auth_count = auth.count(label)
+if global_count != 1 or auth_count != 1:
     raise SystemExit(
-        "Expected exactly one 'Skip signup for now · Preview app' label "
-        "inside AuthScreen; no source changes were written"
-    )
-if source.count(label) != 1:
-    raise SystemExit(
-        "The preview label also appears outside AuthScreen; refusing to "
-        "change the wrong screen"
+        "Preview CTA scope validation failed: "
+        f"found {global_count} total label(s), {auth_count} inside AuthScreen. "
+        "No source changes were written."
     )
 
-# Find the FAB that owns the preview label, allowing arbitrary whitespace.
+# Rewire only the FAB immediately containing the signup preview label.
 label_pos = auth.index(label)
 fab_pos = auth.rfind("ExtendedFloatingActionButton(", 0, label_pos)
 if fab_pos < 0:
-    raise SystemExit(
-        "Found the preview label, but could not find its "
-        "ExtendedFloatingActionButton inside AuthScreen"
-    )
+    raise SystemExit("Preview label is not inside an ExtendedFloatingActionButton")
+fab_end = auth.find(") {", fab_pos)
+if fab_end < 0:
+    raise SystemExit("Could not determine the preview FAB parameter block")
+fab = auth[fab_pos:fab_end]
+if "onClick = onPreview," not in fab:
+    if "onClick = onBack," not in fab:
+        raise SystemExit("Preview FAB has no recognized preview/back callback")
+    fab = fab.replace("onClick = onBack,", "onClick = onPreview,", 1)
+    auth = auth[:fab_pos] + fab + auth[fab_end:]
 
-fab_open = auth.find("(", fab_pos)
-click_match = re.search(
-    r"\bonClick\s*=\s*[^,\n]+,",
-    auth[fab_open + 1:label_pos],
-)
-if not click_match:
-    raise SystemExit(
-        "Found the preview FAB, but could not identify its onClick callback"
-    )
-
-callback_start = fab_open + 1 + click_match.start()
-callback_end = fab_open + 1 + click_match.end()
-auth = auth[:callback_start] + "onClick = onPreview," + auth[callback_end:]
-
-# Ensure AuthScreen exposes the preview callback.
-sig_start = auth.find("private fun AuthScreen(")
-sig_end = auth.find(") {", sig_start)
-if sig_start < 0 or sig_end < 0:
-    raise SystemExit("Could not parse the AuthScreen parameter list")
-signature = auth[sig_start:sig_end]
+# Rename AuthScreen's callback parameter if this source still calls it onBack.
+sig_end = auth.find(") {", 0)
+if sig_end < 0:
+    raise SystemExit("Could not parse AuthScreen's parameter list")
+signature = auth[:sig_end]
 if "onPreview:" not in signature:
-    if "onBack: () -> Unit" in signature:
-        signature = signature.replace("onBack: () -> Unit", "onPreview: () -> Unit", 1)
-    else:
-        raise SystemExit(
-            "AuthScreen has no onPreview callback and no supported onBack "
-            "parameter to migrate"
-        )
-    auth = auth[:sig_start] + signature + auth[sig_end:]
+    if "onBack: () -> Unit" not in signature:
+        raise SystemExit("AuthScreen has no supported preview callback parameter")
+    signature = signature.replace("onBack: () -> Unit", "onPreview: () -> Unit", 1)
+    auth = signature + auth[sig_end:]
 
-# Update only the AuthScreen call site, not unrelated onBack handlers.
-call_match = re.search(
-    r"(?s)(else\s+if\s*\(acc\s*==\s*null\)\s*AuthScreen\s*\()(.*?)(\n\s*\))",
-    source,
-)
-if not call_match:
-    raise SystemExit("Could not locate the unauthenticated AuthScreen call site")
-call_args = call_match.group(2)
-if "onPreview =" not in call_args:
-    if "onBack =" in call_args:
-        call_args = call_args.replace("onBack =", "onPreview =", 1)
-    else:
-        raise SystemExit("AuthScreen call site has no onPreview/onBack argument")
-source = (
-    source[:call_match.start()]
-    + call_match.group(1) + call_args + call_match.group(3)
-    + source[call_match.end():]
-)
+# Update only the AuthScreen invocation before its declaration.
+call_start = source.find("AuthScreen(", 0, auth_start)
+if call_start < 0:
+    raise SystemExit("Could not locate the AuthScreen invocation")
+call_end = source.find("\n            )", call_start)
+if call_end < 0:
+    raise SystemExit("Could not determine the AuthScreen invocation boundary")
+call = source[call_start:call_end]
+if "onPreview =" not in call:
+    if "onBack =" not in call:
+        raise SystemExit("AuthScreen invocation has no onPreview/onBack argument")
+    call = call.replace("onBack =", "onPreview =", 1)
+    source = source[:call_start] + call + source[call_end:]
 
-# Recalculate the AuthScreen block after the call-site edit.
-start_match = re.search(r"(?m)^\s*private fun AuthScreen\s*\(", source)
-end_match = re.search(
-    r"(?m)^\s*@Composable\s*\n\s*private fun ModePill\b",
-    source[start_match.end():],
-)
-auth_start = start_match.start()
-auth_end = start_match.end() + end_match.start()
-auth = source[auth_start:auth_end]
+# Reinsert the updated AuthScreen block at its original location.
+source = source[:auth_start] + auth + source[mode_start:]
 
-if "// Preview shortcut is intentionally scoped to AuthScreen only." not in auth:
-    label_pos = auth.index(label)
-    fab_pos = auth.rfind("ExtendedFloatingActionButton(", 0, label_pos)
-    auth = (
-        auth[:fab_pos]
-        + "// Preview shortcut is intentionally scoped to AuthScreen only.\n      "
-        + auth[fab_pos:]
-    )
-    source = source[:auth_start] + auth + source[auth_end:]
-
+if source.count(label) != 1:
+    raise SystemExit("Final preview CTA uniqueness check failed")
 main.write_text(source, encoding="utf-8")
 print("AuthScreen preview shortcut verified and scoped successfully.")
