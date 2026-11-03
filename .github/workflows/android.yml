@@ -27,6 +27,9 @@ jobs:
           test -d _amitysa_source/amitysa
           rsync -a --exclude='.git' _amitysa_source/amitysa/ ./
 
+      - name: Apply Kotlin compile fixes
+        run: python3 scripts/apply_build_fixes.py
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
