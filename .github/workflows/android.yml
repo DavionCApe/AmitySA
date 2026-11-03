@@ -1,0 +1,60 @@
+name: AmitySA Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Extract the Android project from the uploaded archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="amitysa-stage8-play-ready (1).zip"
+          test -f "$archive"
+          mkdir -p _amitysa_source
+          unzip -q "$archive" -d _amitysa_source
+          test -d _amitysa_source/amitysa
+          rsync -a --exclude='.git' _amitysa_source/amitysa/ ./
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Test optional backend
+        run: node server/smoke-test.js
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.11.1
+
+      - name: Build installable debug APKs
+        run: gradle assembleDirectDebug assemblePlayDebug --no-daemon
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: AmitySA-Android-APKs
+          path: |
+            app/build/outputs/apk/direct/debug/*.apk
+            app/build/outputs/apk/play/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
