@@ -71,6 +71,7 @@ app = app.replace('''        } else {
     }
 ''')
 app = app.replace('store.signOut(); account = null; navigateTo("home")', 'store.signOut(); account = null; screenHistory.clear(); screen = "home"')
+app = app.replace('account = null; navigateTo("home")', 'account = null; screenHistory.clear(); screen = "home"')
 app = app.replace('account = null; navigateTo("home"); locked = false', 'account = null; screenHistory.clear(); screen = "home"; locked = false')
 
 needle = '''            else if (screen == "security") SecurityScreen(
@@ -90,11 +91,9 @@ legal_branch = '''            else if (screen == "security") SecurityScreen(
             else HomeScreen('''
 app = once(app, needle, legal_branch, "legal screen route")
 app = once(app,
+'''                        action.title == "Cloud link" -> navigateTo("cloud")''',
 '''                        action.title == "Cloud link" -> navigateTo("cloud")
-                        action.title == "Location" || action.title == "Safe zones" -> navigateTo("zones")''',
-'''                        action.title == "Cloud link" -> navigateTo("cloud")
-                        action.title == "Terms & Privacy" -> navigateTo("legal")
-                        action.title == "Location" || action.title == "Safe zones" -> navigateTo("zones")''',
+                        action.title == "Terms & Privacy" -> navigateTo("legal")''',
 "Terms & Privacy home action")
 s = s[:start] + app + s[end:]
 
