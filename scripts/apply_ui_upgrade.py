@@ -125,6 +125,40 @@ private fun HomeScreen(
     }
 }
 """
+new_home = new_home.replace(
+    "    val t = LocalAmity.current\\n",
+    "    val t = LocalAmity.current\\n    var showMenu by remember { mutableStateOf(false) }\\n"
+)
+new_home = new_home.replace(
+    "    Box(modifier = Modifier.fillMaxSize().background(t.canvas)) {",
+    "    if (showMenu) {\\n    Box(modifier = Modifier.fillMaxSize().background(t.canvas)) {"
+)
+new_home = new_home.replace(
+    'item { Header(account.username, onOpenThemes, onMenuAction) }',
+    'item { Header(account.username, onOpenThemes) { item -> if (item == "Home") showMenu = false else onMenuAction(item) } }'
+)
+new_home = new_home.replace(
+    "    }\\n}\\n",
+    "    }\\n    } else {\\n        WelcomeScreen(account.username) { showMenu = true }\\n    }\\n}\\n",
+    1
+)
+new_home = new_home.replace(
+    "    val t = LocalAmity.current\\n",
+    "    val t = LocalAmity.current\\n    var showMenu by remember { mutableStateOf(false) }\\n"
+)
+new_home = new_home.replace(
+    "    Box(modifier = Modifier.fillMaxSize().background(t.canvas)) {",
+    "    if (showMenu) {\\n    Box(modifier = Modifier.fillMaxSize().background(t.canvas)) {"
+)
+new_home = new_home.replace(
+    'item { Header(account.username, onOpenThemes, onMenuAction) }',
+    'item { Header(account.username, onOpenThemes) { item -> if (item == "Home") showMenu = false else onMenuAction(item) } }'
+)
+new_home = new_home.replace(
+    "    }\\n}\\n",
+    "    }\\n    } else {\\n        WelcomeScreen(account.username) { showMenu = true }\\n    }\\n}\\n",
+    1
+)
 s = s[:start] + new_home + s[end:]
 main.write_text(s, encoding="utf-8")
 print("Applied six-theme palette and animated scroll-to-top home layout.")
