@@ -29,6 +29,12 @@ jobs:
           test -d _amitysa_source/amitysa
           rsync -a --exclude='.git' --exclude='scripts/' _amitysa_source/amitysa/ ./
 
+      - name: Install image processing dependency
+        run: python3 -m pip install --quiet Pillow
+
+      - name: Replace old launcher icon with new AmitySA artwork
+        run: python3 scripts/apply_launcher_icon.py
+
       - name: Apply Kotlin compile fixes
         run: python3 scripts/apply_build_fixes.py
 
