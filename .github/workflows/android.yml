@@ -56,6 +56,24 @@ jobs:
       - name: Add optional encrypted remember-login feature
         run: python3 scripts/apply_remember_login.py
 
+      - name: Apply approved AmitySA neon glass visual design
+        run: python3 scripts/apply_neon_glass_design.py
+
+      - name: Animate the existing AmitySA home screen logo
+        run: python3 scripts/apply_floating_logo.py
+
+      - name: Add previous-page navigation, random parent/teacher links and terms/privacy page
+        run: python3 scripts/apply_navigation_links_legal.py
+
+      - name: Add Android 8+ Bluetooth and Wi-Fi compatibility
+        run: python3 scripts/apply_device_connectivity.py
+
+      - name: Add parent-child phone and Bluetooth accessory support
+        run: python3 scripts/apply_nearby_bluetooth.py
+
+      - name: Add in-app Bluetooth and Wi-Fi connection screen
+        run: python3 scripts/apply_connectivity_screen.py
+
       - name: Print Kotlin compile context for targeted repairs
         run: python3 scripts/print_compile_context.py
 
