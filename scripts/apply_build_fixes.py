@@ -68,13 +68,34 @@ if "onMenuAction: (String) -> Unit" not in home_block:
     if count != 1:
         raise SystemExit("Could not add onMenuAction to HomeScreen signature")
 source = source[:home_start] + home_block + source[header_start:]
-source, header_count = re.subn(
-    r"Header\\(account\\.username,\\s*onOpenThemes\\s*\\)",
-    "Header(account.username, onOpenThemes, onMenuAction)",
-    source, count=1
-)
-if header_count != 1:
-    raise SystemExit("Could not locate Header call in HomeScreen")
+# Locate the Header invocation within HomeScreen without assuming its exact formatting.
+home_start = source.find("private fun HomeScreen(")
+header_start = source.find("private fun Header(", home_start)
+if home_start < 0 or header_start < 0:
+    raise SystemExit("Could not locate HomeScreen/Header declarations")
+home_block = source[home_start:header_start]
+call_match = re.search(r"\\bHeader\\s*\\(", home_block)
+if not call_match:
+    raise SystemExit("HomeScreen has no Header invocation")
+open_paren = home_block.find("(", call_match.start())
+depth = 0
+close_paren = -1
+for index in range(open_paren, len(home_block)):
+    char = home_block[index]
+    if char == "(":
+        depth += 1
+    elif char == ")":
+        depth -= 1
+        if depth == 0:
+            close_paren = index
+            break
+if close_paren < 0:
+    raise SystemExit("Could not parse Header invocation in HomeScreen")
+args = home_block[open_paren + 1:close_paren].strip()
+if "onMenuAction" not in args:
+    updated_args = args + (", " if args else "") + "onMenuAction"
+    home_block = home_block[:open_paren + 1] + updated_args + home_block[close_paren:]
+    source = source[:home_start] + home_block + source[header_start:]
 main_activity.write_text(source, encoding="utf-8")
 
 # Use the explicit osmdroid Polygon setter to avoid resolving the outer list.
