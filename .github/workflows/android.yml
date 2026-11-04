@@ -36,6 +36,8 @@ jobs:
           source_logo="assets/amitysa_home_logo.jpg"
           test -s "$source_logo"
           mkdir -p app/src/main/res/drawable-nodpi
+          # Android treats same-named PNG/JPG files as duplicate drawable resources.
+          rm -f app/src/main/res/drawable-nodpi/amity_logo.png
           cp "$source_logo" app/src/main/res/drawable-nodpi/amity_logo.jpg
 
 
