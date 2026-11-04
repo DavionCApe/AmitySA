@@ -87,19 +87,8 @@ header = base / "ChildrenScreens.kt"
 if header.exists():
     h = header.read_text(encoding="utf-8")
     if "internal fun ScreenHeader(title: String, onBack: () -> Unit) {" in h:
-        # Keep this patch idempotent when the archive already declares theme.
-        signature = "internal fun ScreenHeader(title: String, onBack: () -> Unit) {"
-        start = h.find(signature)
-        end = h.find("\\n}", start)
-        if start < 0 or end < 0:
-            raise SystemExit("Could not locate ScreenHeader body")
-        body = h[start:end]
-        body_lines = [line for line in body.splitlines()
-                      if "val theme = LocalAmity.current" not in line]
-        body = body_lines[0] + "\\n    val theme = LocalAmity.current"
-        if len(body_lines) > 1:
-            body += "\\n" + "\\n".join(body_lines[1:])
-        h = h[:start] + body + h[end:]
+        # ScreenHeader already receives LocalAmity from the source archive.
+        # Do not inject another local theme declaration here.
         h = h.replace(
             ".background(Brush.verticalGradient(listOf(HeaderTop, HeaderBottom)))",
             ".background(Brush.verticalGradient(listOf(theme.primary, theme.primary.copy(alpha = 0.84f))))",
