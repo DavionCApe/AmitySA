@@ -27,13 +27,21 @@ jobs:
           mkdir -p _amitysa_source
           unzip -q "$archive" -d _amitysa_source
           test -d _amitysa_source/amitysa
-          rsync -a --exclude='.git' _amitysa_source/amitysa/ ./
+          rsync -a --exclude='.git' --exclude='scripts/' _amitysa_source/amitysa/ ./
 
       - name: Apply Kotlin compile fixes
         run: python3 scripts/apply_build_fixes.py
 
       - name: Apply visual and scrolling upgrades
         run: python3 scripts/apply_ui_upgrade.py
+
+      - name: Verify dropdown callback survives UI generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=app/src/main/java/com/amitysa/app/MainActivity.kt
+          grep -Fq 'onMenuAction: (String) -> Unit' "$file"
+          grep -Fq 'Header(account.username, onOpenThemes, onMenuAction)' "$file"
 
       - name: Apply consistent app-wide light and dark themes
         run: python3 scripts/apply_theme_consistency.py
