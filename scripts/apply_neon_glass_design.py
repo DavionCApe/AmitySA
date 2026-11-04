@@ -34,16 +34,6 @@ internal val Danger = Color(0xFFFF315E)''',
 "header palette"
 )
 
-# Add a truthful overview panel: no invented screen-time values or fake AI output.
-replace_once(
-'''        item { StatusCard(online) }
-        item { SosCard(onSos) }''',
-'''        item { StatusCard(online) }
-        item { NeonFamilyOverview() }
-        item { SosCard(onSos) }''',
-"home overview insertion"
-)
-
 # Give the header a layered blue glow while preserving the existing logo and theme action.
 replace_once(
 '''            .background(Brush.verticalGradient(listOf(HeaderTop, HeaderBottom)))''',
