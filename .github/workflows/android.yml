@@ -59,6 +59,9 @@ jobs:
       - name: Apply approved AmitySA neon glass visual design
         run: python3 scripts/apply_neon_glass_design.py
 
+      - name: Animate the existing AmitySA home screen logo
+        run: python3 scripts/apply_floating_logo.py
+
       - name: Print Kotlin compile context for targeted repairs
         run: python3 scripts/print_compile_context.py
 
