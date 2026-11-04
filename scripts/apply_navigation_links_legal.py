@@ -106,7 +106,15 @@ app = once(app,
 "Terms & Privacy home action")
 s = s[:start] + app + s[end:]
 
-cloud_action = re.search(r'(?m)^(\s*)QuickAction\([^\n]*"Cloud link"[^\n]*\),?
+cloud_action = re.search(r'(?m)^(\s*)QuickAction\([^\n]*"Cloud link"[^\n]*\),?$', s)
+if not cloud_action:
+    raise SystemExit("Terms & Privacy quick action: Cloud link tile not found; no files written")
+terms_tile = cloud_action.group(1) + 'QuickAction("📄", "Terms & Privacy", "Privacy, safety & app terms"),'
+if 'QuickAction("📄", "Terms & Privacy"' not in s:
+    line_end = s.find("\n", cloud_action.end())
+    if line_end < 0:
+        raise SystemExit("Terms & Privacy quick action: could not locate insertion point")
+    s = s[:line_end + 1] + terms_tile + "\n" + s[line_end + 1:]
 
 legal = r'''
 
