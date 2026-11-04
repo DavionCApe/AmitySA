@@ -54,21 +54,25 @@ family_map.write_text(map_source, encoding="utf-8")
 
 # Wire the dropdown action handler through HomeScreen into Header.
 source = main_activity.read_text(encoding="utf-8")
-if "onMenuAction: (String) -> Unit" not in source:
-    source, signature_count = re.subn(
-        r'(?m)^([ \\t]*)onAction: \\(QuickAction\\) -> Unit,?\\s*$',
-        r'\\1onAction: (QuickAction) -> Unit,\\n\\1onMenuAction: (String) -> Unit',
-        source,
+home_start = source.find("private fun HomeScreen(")
+header_start = source.find("private fun Header(", home_start)
+if home_start < 0 or header_start < 0:
+    raise SystemExit("Could not locate HomeScreen and Header declarations")
+home_block = source[home_start:header_start]
+if "onMenuAction: (String) -> Unit" not in home_block:
+    home_block, signature_count = re.subn(
+        r"(?m)^(\\s*)onAction: \\(QuickAction\\) -> Unit\\s*$",
+        r"\\1onAction: (QuickAction) -> Unit,\\n\\1onMenuAction: (String) -> Unit",
+        home_block,
         count=1
     )
-else:
-    signature_count = 1
-if signature_count != 1:
-    raise SystemExit("Could not add onMenuAction to HomeScreen signature")
-header_marker = "Header(account.username, onOpenThemes)"
-if source.count(header_marker) != 1:
+    if signature_count != 1:
+        raise SystemExit("Could not add onMenuAction to HomeScreen signature")
+header_call = "Header(account.username, onOpenThemes)"
+if header_call not in home_block:
     raise SystemExit("Could not locate Header call in HomeScreen")
-source = source.replace(header_marker, "Header(account.username, onOpenThemes, onMenuAction)", 1)
+home_block = home_block.replace(header_call, "Header(account.username, onOpenThemes, onMenuAction)", 1)
+source = source[:home_start] + home_block + source[header_start:]
 main_activity.write_text(source, encoding="utf-8")
 
 # Use the explicit osmdroid Polygon setter to avoid resolving the outer list.
