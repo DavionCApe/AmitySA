@@ -11,55 +11,37 @@ for path in files:
     s = path.read_text(encoding="utf-8")
     original = s
 
-    # Style Material 3 bottom navigation as a dark holographic command dock.
-    s = re.sub(
-        r'NavigationBar\(\s*(?!containerColor\s*=)',
-        'NavigationBar(\n        containerColor = Color(0xE6091723),\n        contentColor = Color(0xFF72E8FF),\n        tonalElevation = 0.dp,\n',
-        s
-    )
+    # The current app uses a custom header menu rather than Material NavigationBar.
+    # Style the existing dropdown itself; do not rename, remove or reorder its items.
+    if "DropdownMenu(" in s:
+        s = re.sub(
+            r'DropdownMenu\(\s*(?!containerColor\s*=)',
+            'DropdownMenu(\n        containerColor = Color(0xF20A1A28),\n        tonalElevation = 12.dp,\n        shadowElevation = 18.dp,\n',
+            s
+        )
+    if "DropdownMenuItem(" in s:
+        s = re.sub(
+            r'DropdownMenuItem\(\s*(?!colors\s*=)',
+            'DropdownMenuItem(\n        colors = androidx.compose.material3.MenuDefaults.itemColors(\n'
+            '            textColor = Color(0xFFD9F7FF),\n'
+            '            leadingIconColor = Color(0xFF62DDF5),\n'
+            '            trailingIconColor = Color(0xFFFFA24A),\n'
+            '            disabledTextColor = Color(0xFF607A89)\n'
+            '        ),\n',
+            s
+        )
 
-    # Give every navigation item the same cyan/orange JARVIS selection language.
-    item_colors = '''NavigationBarItemDefaults.colors(
-            selectedIconColor = Color(0xFF8CF2FF),
-            selectedTextColor = Color(0xFFBDF8FF),
-            indicatorColor = Color(0x5538BFE8),
-            unselectedIconColor = Color(0xFF7896A8),
-            unselectedTextColor = Color(0xFF7896A8)
-        )'''
-    s = re.sub(
-        r'NavigationBarItem\(\s*(?!.*?colors\s*=)',
-        'NavigationBarItem(\n        colors = ' + item_colors + ',\n',
-        s,
-        flags=re.S
-    )
-
-    # Convert standard navigation drawer items into dark glass / cyan active states.
-    s = re.sub(
-        r'NavigationDrawerItem\(\s*(?!.*?colors\s*=)',
-        'NavigationDrawerItem(\n        colors = NavigationDrawerItemDefaults.colors(\n'
-        '            selectedContainerColor = Color(0x5538BFE8),\n'
-        '            unselectedContainerColor = Color.Transparent,\n'
-        '            selectedIconColor = Color(0xFF8CF2FF),\n'
-        '            unselectedIconColor = Color(0xFF7896A8),\n'
-        '            selectedTextColor = Color(0xFFBDF8FF),\n'
-        '            unselectedTextColor = Color(0xFFB0C6D4)\n'
-        '        ),\n',
-        s,
-        flags=re.S
-    )
-
-    # Preserve menu labels/options while improving the shared header treatment.
+    # Give menu-related glass cards a technical cyan edge.
     s = s.replace(
-        'RoundedCornerShape(16.dp),\n            colors = CardDefaults.cardColors(containerColor = t.card)',
-        'RoundedCornerShape(16.dp),\n            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x6656DFFF)),\n            colors = CardDefaults.cardColors(containerColor = Color(0xD9091B2A))'
+        'CardDefaults.cardColors(containerColor = t.card)',
+        'CardDefaults.cardColors(containerColor = Color(0xD9091B2A))'
     )
+
     if s != original:
         path.write_text(s, encoding="utf-8")
         changed.append(str(path))
 
 if not changed:
-    # Navigation may use a custom row instead of Material NavigationBar.
-    # Fail clearly rather than silently reporting a visual change.
-    raise SystemExit("No supported Material 3 navigation components were found to style")
+    raise SystemExit("Could not find the existing custom menu/dropdown in the Android Kotlin source")
 
-print("Applied JARVIS command-dock styling while preserving existing navigation destinations and labels in: " + ", ".join(changed))
+print("Applied JARVIS glass styling to existing AmitySA menu surfaces without changing menu options: " + ", ".join(changed))
