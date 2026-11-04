@@ -71,6 +71,9 @@ jobs:
       - name: Add parent-child phone and Bluetooth accessory support
         run: python3 scripts/apply_nearby_bluetooth.py
 
+      - name: Add in-app Bluetooth and Wi-Fi connection screen
+        run: python3 scripts/apply_connectivity_screen.py
+
       - name: Print Kotlin compile context for targeted repairs
         run: python3 scripts/print_compile_context.py
 
