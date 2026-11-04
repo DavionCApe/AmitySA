@@ -54,15 +54,15 @@ family_map.write_text(map_source, encoding="utf-8")
 
 # Wire the dropdown action handler through HomeScreen into Header.
 source = main_activity.read_text(encoding="utf-8")
-signature_marker = "    onAction: (QuickAction) -> Unit\n) {"
-if source.count(signature_marker) != 1:
-    raise SystemExit("Could not locate HomeScreen signature for onMenuAction")
-source = source.replace(
-    signature_marker,
-    "    onAction: (QuickAction) -> Unit,\n    onMenuAction: (String) -> Unit\n) {",
-    1
-)
-signature_count = 1
+if "onMenuAction: (String) -> Unit" not in source:
+    source, signature_count = re.subn(
+        r'(?m)^([ \\t]*)onAction: \\(QuickAction\\) -> Unit,?\\s*$',
+        r'\\1onAction: (QuickAction) -> Unit,\\n\\1onMenuAction: (String) -> Unit',
+        source,
+        count=1
+    )
+else:
+    signature_count = 1
 if signature_count != 1:
     raise SystemExit("Could not add onMenuAction to HomeScreen signature")
 source, header_count = re.subn(
