@@ -207,7 +207,6 @@ replacement = '''                    Row(Modifier.fillMaxWidth(), horizontalArra
 c = once(c, needle, replacement, "create/random invite button row")
 cloud.write_text(c, encoding="utf-8")
 print("Added previous-screen navigation, random parent/teacher invite option, and Terms/Privacy/Safety page.")
-, s)
 if not cloud_action:
     raise SystemExit("Terms & Privacy quick action: Cloud link tile not found; no files written")
 terms_tile = cloud_action.group(1) + 'QuickAction("📄", "Terms & Privacy", "Privacy, safety & app terms"),'
