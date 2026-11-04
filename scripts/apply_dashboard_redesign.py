@@ -46,7 +46,7 @@ private fun JarvisDashboard(
                 Column(Modifier.padding(horizontal = 20.dp)) {
                     Text("AMITYSA  /  FAMILY COMMAND", color = t.primary, fontSize = 10.sp,
                         fontWeight = FontWeight.ExtraBold, letterSpacing = 2.sp)
-                    Text("Good to see you, \${account.username}", color = t.ink,
+                    Text("Good to see you, ${account.username}", color = t.ink,
                         fontSize = 23.sp, fontWeight = FontWeight.Bold)
                     Text("Your Family’s Safety, Connected.", color = t.inkSoft, fontSize = 12.sp)
                 }
@@ -84,7 +84,7 @@ private fun JarvisDashboard(
                     Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("ACCOUNT IDENTIFICATION", color = t.primary, fontSize = 9.sp,
                             fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                        Text("\${account.username}  ·  \${if (account.role == Role.EDUCATOR) "EDUCATOR" else "PARENT"}",
+                        Text("${account.username}  ·  ${if (account.role == Role.EDUCATOR) "EDUCATOR" else "PARENT"}",
                             color = t.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         Text(account.email, color = t.inkSoft, fontSize = 11.sp)
                         OutlinedButton(onClick = onSignOut, modifier = Modifier.fillMaxWidth()) {
@@ -179,7 +179,7 @@ private fun JarvisRadar(online: Boolean, children: Int, zones: Int) {
             Column(Modifier.align(Alignment.TopStart)) {
                 Text("FAMILY OVERVIEW", color = t.primary, fontSize = 9.sp,
                     fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp)
-                Text("SCANNER // \${if (online) "LINK READY" else "LOCAL STANDBY"}",
+                Text("SCANNER // ${if (online) "LINK READY" else "LOCAL STANDBY"}",
                     color = t.inkSoft, fontSize = 8.sp)
             }
             Column(Modifier.align(Alignment.BottomStart)) {
