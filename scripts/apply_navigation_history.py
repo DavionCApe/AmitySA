@@ -6,26 +6,34 @@ if not main.is_file():
     raise SystemExit("AmitySA MainActivity.kt was not found")
 source = main.read_text(encoding="utf-8").replace("\r\n", "\n")
 
-state = '    var screen by remember { mutableStateOf("home") }'
-replacement = '''    var screen by remember { mutableStateOf("home") }
-    val screenHistory = remember { mutableStateListOf<String>() }
-    fun navigateTo(destination: String) {
-        if (screen != destination) {
-            screenHistory.add(screen)
-            screen = destination
-        }
-    }
-    fun navigateBack() {
-        if (screenHistory.isNotEmpty()) {
-            screen = screenHistory.removeAt(screenHistory.lastIndex)
-        } else {
-            screen = "home"
-        }
-    }'''
+state_pattern = re.compile(
+    r'(?m)^(?P<indent>[ \t]*)var screen by remember(?:Saveable)?\s*'
+    r'\{\s*mutableStateOf\("home"\)\s*\}\s*$'
+)
+replacement = '''{indent}var screen by remember {{ mutableStateOf("home") }}
+{indent}val screenHistory = remember {{ mutableStateListOf<String>() }}
+{indent}fun navigateTo(destination: String) {{
+{indent}    if (screen != destination) {{
+{indent}        screenHistory.add(screen)
+{indent}        screen = destination
+{indent}    }}
+{indent}}}
+{indent}fun navigateBack() {{
+{indent}    if (screenHistory.isNotEmpty()) {{
+{indent}        screen = screenHistory.removeAt(screenHistory.lastIndex)
+{indent}    }} else {{
+{indent}        screen = "home"
+{indent}    }}
+{indent}}}'''
 if 'val screenHistory = remember { mutableStateListOf<String>() }' not in source:
-    if source.count(state) != 1:
-        raise SystemExit("Could not find the unique AmitySA screen state declaration")
-    source = source.replace(state, replacement, 1)
+    matches = list(state_pattern.finditer(source))
+    if len(matches) != 1:
+        raise SystemExit(
+            "Expected exactly one screen state declaration using remember/rememberSaveable "
+            "and mutableStateOf(\"home\"); found " + str(len(matches))
+        )
+    match = matches[0]
+    source = source[:match.start()] + replacement.format(indent=match.group("indent")) + source[match.end():]
 
 old_back = '''    BackHandler(enabled = acc != null && screen != "home") {
         screen = if (screen == "edit") "children" else "home"
@@ -57,7 +65,7 @@ for route in ["home", "children", "edit", "sos", "sosSetup", "zones", "cloud", "
         app
     )
 
-# Restore the two assignments that belong inside the navigation helpers.
+# Restore the assignments that belong inside the navigation helpers.
 app = app.replace('''    fun navigateTo(destination: String) {
         if (screen != destination) {
             screenHistory.add(screen)
