@@ -136,6 +136,7 @@ if 'QuickAction("📄", "Terms & Privacy"' not in s:
     if line_end < 0:
         raise SystemExit("Terms & Privacy quick action: could not locate insertion point")
     s = s[:line_end + 1] + terms_tile + "\n" + s[line_end + 1:]
+main.write_text(s, encoding="utf-8")
 
 legal = r'''
 
