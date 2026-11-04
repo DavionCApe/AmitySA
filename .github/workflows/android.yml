@@ -74,6 +74,9 @@ jobs:
       - name: Animate the existing AmitySA home screen logo
         run: python3 scripts/apply_floating_logo.py
 
+      - name: Apply AmitySA Fantasy UI and Sci-Fi HUD design
+        run: python3 scripts/apply_fui_hud.py
+
       - name: Add previous-page navigation, random parent/teacher links and terms/privacy page
         run: python3 scripts/apply_navigation_links_legal.py
 
