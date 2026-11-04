@@ -68,10 +68,10 @@ if "onMenuAction: (String) -> Unit" not in home_block:
     )
     if signature_count != 1:
         raise SystemExit("Could not add onMenuAction to HomeScreen signature")
-source, header_count = re.subn(
+home_block, header_count = re.subn(
     r"Header\\(account\\.username,\\s*onOpenThemes\\s*\\)",
     "Header(account.username, onOpenThemes, onMenuAction)",
-    source,
+    home_block,
     count=1
 )
 if header_count != 1:
