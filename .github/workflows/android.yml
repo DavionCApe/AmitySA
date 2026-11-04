@@ -7,6 +7,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Keep the newest workspace build; cancel stale builds after rapid commits.
+concurrency:
+  group: amitysa-android-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -53,7 +58,7 @@ jobs:
           grep -Fq 'Header(account.username, onOpenThemes) { item ->' "$file"
           grep -Fq 'WelcomeScreen(account.username) { showEmergency = true }' "$file"
 
-      - name: Apply consistent app-wide light and dark themes
+      - name: Replace legacy styling with the JARVIS Command Centre theme across the full app
         run: python3 scripts/apply_theme_consistency.py
 
       - name: Apply AmitySA FUI and sci-fi HUD styling across all screens
