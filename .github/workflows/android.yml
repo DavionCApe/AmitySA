@@ -65,6 +65,9 @@ jobs:
       - name: Add previous-page navigation, random parent/teacher links and terms/privacy page
         run: python3 scripts/apply_navigation_links_legal.py
 
+      - name: Add Android 8+ Bluetooth and Wi-Fi compatibility
+        run: python3 scripts/apply_device_connectivity.py
+
       - name: Print Kotlin compile context for targeted repairs
         run: python3 scripts/print_compile_context.py
 
