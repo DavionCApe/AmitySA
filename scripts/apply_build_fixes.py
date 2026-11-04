@@ -111,4 +111,14 @@ if polygon_count != 1:
     raise SystemExit("Could not update offline map safe-zone polygon points")
 offline_map.write_text(offline_source, encoding="utf-8")
 
+print("---- MainActivity callback diagnostics ----")
+main_lines = main_activity.read_text(encoding="utf-8").splitlines()
+for lo, hi in ((395, 418), (755, 835)):
+    print(f"---- lines {lo}-{hi} ----")
+    for number in range(lo, min(hi, len(main_lines)) + 1):
+        print(f"{number}: {main_lines[number - 1]}")
+print("---- HomeScreen declarations ----")
+for number, line in enumerate(main_lines, 1):
+    if "HomeScreen(" in line or "Header(" in line:
+        print(f"{number}: {line}")
 print("Applied MapType, menu callback, and offline polygon compile repairs.")
