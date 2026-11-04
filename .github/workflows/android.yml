@@ -59,6 +59,9 @@ jobs:
       - name: Apply AmitySA FUI and sci-fi HUD styling across all screens
         run: python3 scripts/apply_fui_hud.py
 
+
+      - name: Add animated JARVIS command-centre HUD across all app pages
+        run: python3 scripts/apply_jarvis_motion.py
       - name: Keep preview shortcut on signup/sign-in screen only
         run: python3 scripts/apply_auth_preview_scope.py
 
