@@ -2,7 +2,7 @@ name: AmitySA Android APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, design/neon-glass-ui]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -28,6 +28,16 @@ jobs:
           unzip -q "$archive" -d _amitysa_source
           test -d _amitysa_source/amitysa
           rsync -a --exclude='.git' --exclude='scripts/' _amitysa_source/amitysa/ ./
+
+      - name: Install uploaded AmitySA home logo
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_logo="assets/amitysa_home_logo.jpg"
+          test -s "$source_logo"
+          mkdir -p app/src/main/res/drawable-nodpi
+          cp "$source_logo" app/src/main/res/drawable-nodpi/amity_logo.jpg
+
 
       - name: Apply Kotlin compile fixes
         run: python3 scripts/apply_build_fixes.py
