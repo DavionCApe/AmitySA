@@ -74,6 +74,18 @@ jobs:
       - name: Animate the existing AmitySA home screen logo
         run: python3 scripts/apply_floating_logo.py
 
+      - name: Verify the replacement logo is wired into the actual home screen
+        shell: bash
+        run: |
+          set -euo pipefail
+          kotlin_file=app/src/main/java/com/amitysa/app/MainActivity.kt
+          logo_file=app/src/main/res/drawable-nodpi/amity_logo.jpg
+          test -s "$logo_file"
+          grep -Fq 'private fun FloatingAmityLogo' "$kotlin_file"
+          grep -Fq 'painter = painterResource(R.drawable.amity_logo)' "$kotlin_file"
+          grep -Fq 'FloatingAmityLogo(' "$kotlin_file"
+          echo "Verified: the replacement AmitySA logo is installed and used by the home screen."
+
       - name: Apply AmitySA Fantasy UI and Sci-Fi HUD design
         run: python3 scripts/apply_fui_hud.py
 
