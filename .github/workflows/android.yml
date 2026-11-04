@@ -68,6 +68,9 @@ jobs:
       - name: Add Android 8+ Bluetooth and Wi-Fi compatibility
         run: python3 scripts/apply_device_connectivity.py
 
+      - name: Add parent-child phone and Bluetooth accessory support
+        run: python3 scripts/apply_nearby_bluetooth.py
+
       - name: Print Kotlin compile context for targeted repairs
         run: python3 scripts/print_compile_context.py
 
