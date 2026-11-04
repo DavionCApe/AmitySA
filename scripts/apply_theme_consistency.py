@@ -87,11 +87,17 @@ header = base / "ChildrenScreens.kt"
 if header.exists():
     h = header.read_text(encoding="utf-8")
     if "internal fun ScreenHeader(title: String, onBack: () -> Unit) {" in h:
-        h = h.replace(
-            "internal fun ScreenHeader(title: String, onBack: () -> Unit) {",
-            "internal fun ScreenHeader(title: String, onBack: () -> Unit) {\n    val theme = LocalAmity.current",
-            1
+        # Keep the transformation idempotent when the archive already declares theme.
+        header_match = re.search(
+            r"(internal fun ScreenHeader\\(title: String, onBack: \\(\\) -> Unit\\) \\{)(.*?)(?=^\\})",
+            h, flags=re.S | re.M
         )
+        if not header_match:
+            raise SystemExit("Could not locate ScreenHeader body")
+        body = header_match.group(2)
+        body = re.sub(r"(?m)^\\s*val theme = LocalAmity\\.current\\n", "", body)
+        body = "\\n    val theme = LocalAmity.current" + body
+        h = h[:header_match.start(2)] + body + h[header_match.end(2):]
         h = h.replace(
             ".background(Brush.verticalGradient(listOf(HeaderTop, HeaderBottom)))",
             ".background(Brush.verticalGradient(listOf(theme.primary, theme.primary.copy(alpha = 0.84f))))",
