@@ -142,23 +142,90 @@ new_home = new_home.replace(
     "    }\\n    } else {\\n        WelcomeScreen(account.username) { showMenu = true }\\n    }\\n}\\n",
     1
 )
-new_home = new_home.replace(
-    "    val t = LocalAmity.current\\n",
-    "    val t = LocalAmity.current\\n    var showMenu by remember { mutableStateOf(false) }\\n"
-)
-new_home = new_home.replace(
-    "    Box(modifier = Modifier.fillMaxSize().background(t.canvas)) {",
-    "    if (showMenu) {\\n    Box(modifier = Modifier.fillMaxSize().background(t.canvas)) {"
-)
-new_home = new_home.replace(
-    'item { Header(account.username, onOpenThemes, onMenuAction) }',
-    'item { Header(account.username, onOpenThemes) { item -> if (item == "Home") showMenu = false else onMenuAction(item) } }'
-)
-new_home = new_home.replace(
-    "    }\\n}\\n",
-    "    }\\n    } else {\\n        WelcomeScreen(account.username) { showMenu = true }\\n    }\\n}\\n",
-    1
-)
-s = s[:start] + new_home + s[end:]
+
+welcome_screen = r"""
+@Composable
+private fun WelcomeScreen(username: String, onContinue: () -> Unit) {
+    val t = LocalAmity.current
+    var visibleCards by remember { mutableIntStateOf(0) }
+    val messages = listOf(
+        Triple("🛡️", "Feel connected", "Keep your family connected with tools designed around everyday safety."),
+        Triple("📍", "Stay in the know", "Use location and safe-place tools when your family chooses to share them."),
+        Triple("🤝", "Check in with ease", "Share quick updates and let loved ones know when you are safe."),
+        Triple("💚", "Made for families", "A private space for parents and children to stay connected.")
+    )
+    LaunchedEffect(Unit) {
+        visibleCards = 0
+        for (index in 1..messages.size) {
+            delay(260)
+            visibleCards = index
+        }
+    }
+    Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(t.canvas, t.card)))) {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("HELLO, $username", color = t.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+            Spacer(Modifier.height(10.dp))
+            Text("Welcome to AmitySA", color = t.ink, fontSize = 31.sp, lineHeight = 38.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(8.dp))
+            Text("A safer, more connected family experience.", color = t.inkSoft, fontSize = 15.sp, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(28.dp))
+            messages.forEachIndexed { index, message ->
+                AnimatedVisibility(
+                    visible = visibleCards > index,
+                    enter = fadeIn(tween(360)) + scaleIn(initialScale = 0.94f, animationSpec = tween(360))
+                ) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
+                            .offset(x = if (index % 2 == 0) (-7).dp else 7.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = t.card),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 17.dp, vertical = 15.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(13.dp)
+                        ) {
+                            Text(message.first, fontSize = 25.sp)
+                            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text(message.second, color = t.ink, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                Text(message.third, color = t.inkSoft, fontSize = 12.sp, lineHeight = 17.sp)
+                            }
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+            Button(
+                onClick = onContinue,
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                shape = RoundedCornerShape(17.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = t.primary, contentColor = t.onAccent)
+            ) {
+                Text("Explore AmitySA", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(10.dp))
+            Text("Your family. Your connection. Your space.", color = t.inkSoft, fontSize = 11.sp, textAlign = TextAlign.Center)
+        }
+    }
+}
+"""
+
+for imp in [
+    "import androidx.compose.foundation.rememberScrollState",
+    "import androidx.compose.foundation.verticalScroll",
+    "import androidx.compose.foundation.layout.offset",
+    "import androidx.compose.ui.text.style.TextAlign"
+]:
+    if imp not in s:
+        first = s.find("import ")
+        s = s[:first] + imp + "\\n" + s[first:]
+
+s = s[:start] + new_home + "\\n" + welcome_screen + s[end:]
 main.write_text(s, encoding="utf-8")
 print("Applied six-theme palette and animated scroll-to-top home layout.")
