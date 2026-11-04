@@ -62,6 +62,9 @@ jobs:
       - name: Animate the existing AmitySA home screen logo
         run: python3 scripts/apply_floating_logo.py
 
+      - name: Add previous-page navigation, random parent/teacher links and terms/privacy page
+        run: python3 scripts/apply_navigation_links_legal.py
+
       - name: Print Kotlin compile context for targeted repairs
         run: python3 scripts/print_compile_context.py
 
