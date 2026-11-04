@@ -113,7 +113,7 @@ offline_map.write_text(offline_source, encoding="utf-8")
 
 print("---- MainActivity callback diagnostics ----")
 main_lines = main_activity.read_text(encoding="utf-8").splitlines()
-for lo, hi in ((395, 418), (755, 835)):
+for lo, hi in ((370, 425), (725, 755), (860, 885)):
     print(f"---- lines {lo}-{hi} ----")
     for number in range(lo, min(hi, len(main_lines)) + 1):
         print(f"{number}: {main_lines[number - 1]}")
