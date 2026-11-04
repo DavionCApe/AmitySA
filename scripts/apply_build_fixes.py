@@ -61,8 +61,8 @@ if home_start < 0 or header_start < 0:
 home_block = source[home_start:header_start]
 if "onMenuAction: (String) -> Unit" not in home_block:
     home_block, count = re.subn(
-        r"(?m)^(\\s*)onAction: \\(QuickAction\\) -> Unit\\s*$",
-        r"\\1onAction: (QuickAction) -> Unit,\\n\\1onMenuAction: (String) -> Unit",
+        r"(?m)^(\s*)onAction: \(QuickAction\) -> Unit\s*$",
+        r"\1onAction: (QuickAction) -> Unit,\n\1onMenuAction: (String) -> Unit",
         home_block, count=1
     )
     if count != 1:
@@ -74,7 +74,7 @@ header_start = source.find("private fun Header(", home_start)
 if home_start < 0 or header_start < 0:
     raise SystemExit("Could not locate HomeScreen/Header declarations")
 home_block = source[home_start:header_start]
-call_match = re.search(r"\\bHeader\\s*\\(", home_block)
+call_match = re.search(r"\bHeader\s*\(", home_block)
 if not call_match:
     raise SystemExit("HomeScreen has no Header invocation")
 open_paren = home_block.find("(", call_match.start())
