@@ -13,7 +13,7 @@ s = main.read_text(encoding="utf-8")
 midnight = '''private val Midnight = AmityTheme(
     "jarvis", "JARVIS Command Centre", true,
     Color(0xFF050B14), Color(0xE6102232), Color(0xFFE4FAFF), Color(0xFF8CB8C8),
-    Color(0xFFFF9A3C), Color(0xFF00CFFF), Color(0xFF04131D)
+    Color(0xFF00CFFF), Color(0xFFFF9A3C), Color(0xFF04131D)
 )'''
 s, count = re.subn(r'private val Midnight = AmityTheme\(.*?\n\)', midnight, s, count=1, flags=re.S)
 if count != 1:
