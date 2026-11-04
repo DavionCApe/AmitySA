@@ -16,6 +16,7 @@ new='''    } else if (showEmergency) {
 }'''
 if old not in s: raise SystemExit("Welcome screen transition not found")
 s=s.replace(old,new,1)
+s=s.replace('item { Header(account.username, onOpenThemes, onMenuAction) }', 'item { Header(account.username, onOpenThemes) { item -> if (item == "Home") showEmergency = false else onMenuAction(item) } }', 1)
 s += r"""
 
 private data class EmergencyContact(val category:String,val name:String,val number:String,val info:String,val icon:String)
