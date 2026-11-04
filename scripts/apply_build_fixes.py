@@ -42,14 +42,14 @@ print("Applied and verified ChildStore school methods and compatible splash scal
 # Keep Google Maps' MapType enum strongly typed.
 family_map = root / "app/src/main/java/com/amitysa/app/FamilyMapScreen.kt"
 map_source = family_map.read_text(encoding="utf-8")
-map_source, map_count = re.subn(
-    r'var mapType by remember \\{\\s*mutableIntStateOf\\(MapType\\.NORMAL\\)\\s*\\}',
-    'var mapType by remember { mutableStateOf(MapType.NORMAL) }',
-    map_source,
-    count=1
-)
+map_count = map_source.count("var mapType by remember { mutableIntStateOf(MapType.NORMAL) }")
 if map_count != 1:
-    raise SystemExit("Could not convert FamilyMapScreen mapType state to MapType state")
+    raise SystemExit("Could not locate the original FamilyMapScreen mapType state")
+map_source = map_source.replace(
+    "var mapType by remember { mutableIntStateOf(MapType.NORMAL) }",
+    "var mapType by remember { mutableStateOf(MapType.NORMAL) }",
+    1
+)
 family_map.write_text(map_source, encoding="utf-8")
 
 # Wire the dropdown action handler through HomeScreen into Header.
