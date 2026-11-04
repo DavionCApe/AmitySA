@@ -41,7 +41,8 @@ jobs:
           set -euo pipefail
           file=app/src/main/java/com/amitysa/app/MainActivity.kt
           grep -Fq 'onMenuAction: (String) -> Unit' "$file"
-          grep -Fq 'Header(account.username, onOpenThemes, onMenuAction)' "$file"
+          grep -Fq 'Header(account.username, onOpenThemes) { item ->' "$file"
+          grep -Fq 'WelcomeScreen(account.username) { showMenu = true }' "$file"
 
       - name: Apply consistent app-wide light and dark themes
         run: python3 scripts/apply_theme_consistency.py
