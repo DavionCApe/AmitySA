@@ -68,10 +68,14 @@ if "onMenuAction: (String) -> Unit" not in home_block:
     )
     if signature_count != 1:
         raise SystemExit("Could not add onMenuAction to HomeScreen signature")
-header_call = "Header(account.username, onOpenThemes)"
-if header_call not in home_block:
+source, header_count = re.subn(
+    r"Header\\(account\\.username,\\s*onOpenThemes\\s*\\)",
+    "Header(account.username, onOpenThemes, onMenuAction)",
+    source,
+    count=1
+)
+if header_count != 1:
     raise SystemExit("Could not locate Header call in HomeScreen")
-home_block = home_block.replace(header_call, "Header(account.username, onOpenThemes, onMenuAction)", 1)
 source = source[:home_start] + home_block + source[header_start:]
 main_activity.write_text(source, encoding="utf-8")
 
