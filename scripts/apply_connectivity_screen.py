@@ -15,7 +15,6 @@ import android.bluetooth.BluetoothGattCallback
 import android.content.Intent
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.BluetoothSocket
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
