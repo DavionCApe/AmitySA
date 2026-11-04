@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 p = Path("app/src/main/java/com/amitysa/app/MainActivity.kt")
 s = p.read_text(encoding="utf-8")
@@ -6,26 +7,50 @@ s = p.read_text(encoding="utf-8")
 def add_import(line: str):
     global s
     if line not in s:
-        s = s.replace("import androidx.compose.animation.core.infiniteRepeatable\n",
-                      "import androidx.compose.animation.core.infiniteRepeatable\n" + line + "\n", 1)
+        marker = "import androidx.compose.animation.core.infiniteRepeatable\n"
+        if marker not in s:
+            raise SystemExit("Floating logo upgrade stopped: animation import anchor not found")
+        s = s.replace(marker, marker + line + "\n", 1)
 
 add_import("import androidx.compose.animation.core.animateFloat")
 add_import("import androidx.compose.ui.draw.shadow")
 add_import("import androidx.compose.foundation.border")
 
-old = '''        Image(
-            painter = painterResource(R.drawable.amity_logo),
-            contentDescription = "AmitySA logo",
+# Locate the logo image inside Header rather than relying on a brittle exact
+# indentation/string match (other UI generation steps adjust the header).
+header_match = re.search(r"@Composable\s+private fun Header\([^)]*\)\s*\{", s)
+if not header_match:
+    raise SystemExit("Floating logo upgrade stopped: Header composable not found")
+header_start = header_match.end()
+next_composable = s.find("\n@Composable", header_start)
+header_end = next_composable if next_composable >= 0 else len(s)
+header = s[header_start:header_end]
+image_match = re.search(r"Image\s*\(", header)
+if not image_match:
+    raise SystemExit("Floating logo upgrade stopped: no image found in Header")
+image_start = image_match.start()
+open_paren = header.find("(", image_start)
+depth = 0
+image_end = None
+for index in range(open_paren, len(header)):
+    if header[index] == "(":
+        depth += 1
+    elif header[index] == ")":
+        depth -= 1
+        if depth == 0:
+            image_end = index + 1
+            break
+if image_end is None:
+    raise SystemExit("Floating logo upgrade stopped: could not parse Header image call")
+image_block = header[image_start:image_end]
+if "painterResource(R.drawable.amity_logo)" not in image_block:
+    raise SystemExit("Floating logo upgrade stopped: Header image is not the AmitySA logo")
+new_image = '''FloatingAmityLogo(
             modifier = Modifier.fillMaxWidth(0.7f).widthIn(max = 320.dp)
         )'''
-new = '''        FloatingAmityLogo(
-            modifier = Modifier.fillMaxWidth(0.7f).widthIn(max = 320.dp)
-        )'''
-if s.count(old) != 1:
-    raise SystemExit(f"Floating logo upgrade stopped: expected one home header logo, found {s.count(old)}")
-s = s.replace(old, new, 1)
+header = header[:image_start] + new_image + header[image_end:]
+s = s[:header_start] + header + s[header_end:]
 
-anchor = "@Composable\nprivate fun Header(username: String, onOpenThemes: () -> Unit) {"
 component = '''@Composable
 private fun FloatingAmityLogo(modifier: Modifier = Modifier) {
     val motion = rememberInfiniteTransition(label = "amityLogoFloat")
@@ -58,8 +83,7 @@ private fun FloatingAmityLogo(modifier: Modifier = Modifier) {
     )
 
     Box(
-        modifier = modifier
-            .padding(horizontal = 8.dp, vertical = 10.dp),
+        modifier = modifier.padding(horizontal = 8.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -93,10 +117,11 @@ private fun FloatingAmityLogo(modifier: Modifier = Modifier) {
 }
 
 '''
-if anchor not in s:
-    raise SystemExit("Floating logo upgrade stopped: Header insertion point not found")
 if "private fun FloatingAmityLogo" not in s:
-    s = s.replace(anchor, component + anchor, 1)
+    anchor = re.search(r"@Composable\s+private fun Header\(", s)
+    if not anchor:
+        raise SystemExit("Floating logo upgrade stopped: Header insertion point not found")
+    s = s[:anchor.start()] + component + s[anchor.start():]
 
 p.write_text(s, encoding="utf-8")
 print("AmitySA home header now uses the existing logo with a gentle 3D float, tilt and pulsing neon halo.")
