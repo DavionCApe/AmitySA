@@ -12,6 +12,7 @@ ui = r'''package com.amitysa.app
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
+import android.content.Intent
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.BluetoothSocket
 import android.content.Intent
@@ -250,37 +251,6 @@ fun ConnectivityScreen(onBack: () -> Unit) {
         }
     }
 }
-'''
-screen.write_text(ui, encoding="utf-8")
-
-# Add one home shortcut, one route and one screen branch. Fail closed if source shape changed.
-# Keep device connectivity out of the home shortcuts. Add one Settings entry instead.
-if 'QuickAction("⚙️", "Settings"' not in s:
-    tile = next((line for line in s.splitlines() if "QuickAction(" in line and '"Cloud link"' in line), None)
-    if tile is None:
-        raise SystemExit("Could not locate Cloud link home shortcut")
-    indent = tile[:len(tile)-len(tile.lstrip())]
-    s = s.replace(tile, tile + "\n" + indent + 'QuickAction("⚙️", "Settings", "App preferences & device controls"),', 1)
-
-app_start = s.index("fun AmityApp(")
-app_end = s.index("\n// ---------- Connectivity ----------", app_start)
-app = s[app_start:app_end]
-cloud_action = 'action.title == "Cloud link" -> navigateTo("cloud")'
-if cloud_action not in app:
-    raise SystemExit("Could not locate Cloud link action handler")
-if 'action.title == "Settings"' not in app:
-    app = app.replace(cloud_action, cloud_action + '\n                        action.title == "Settings" -> navigateTo("settings")', 1)
-
-home_branch = app.find("else HomeScreen(")
-if home_branch < 0:
-    raise SystemExit("Could not locate HomeScreen route")
-if 'screen == "connectivity"' not in app:
-    app = app[:home_branch] + 'else if (screen == "settings") AmitySettingsScreen(onBack = { goBack() }, onConnectivity = { navigateTo("connectivity") }, onLegal = { navigateTo("legal") })\n            else if (screen == "connectivity") ConnectivityScreen(onBack = { goBack() })\n            ' + app[home_branch:]
-s = s[:app_start] + app + s[app_end:]
-main.write_text(s, encoding="utf-8")
-print("Added AmitySA Bluetooth & Wi-Fi screen with permission requests, Wi-Fi status, parent/child discoverability, scanning, pairing, phone connection, Classic/BLE accessory discovery and BLE GATT connection.")
-
-@SuppressLint("BatteryLife")
 @Composable
 fun AmitySettingsScreen(onBack: () -> Unit, onConnectivity: () -> Unit, onLegal: () -> Unit) {
     val context = LocalContext.current
@@ -336,3 +306,33 @@ fun AmitySettingsScreen(onBack: () -> Unit, onConnectivity: () -> Unit, onLegal:
         Text("Android controls sensitive permissions. AmitySA will request access when a feature needs it; you can change or revoke access at any time in Android settings.", style = MaterialTheme.typography.bodySmall)
     }
 }
+
+'''
+screen.write_text(ui, encoding="utf-8")
+
+# Add one home shortcut, one route and one screen branch. Fail closed if source shape changed.
+# Keep device connectivity out of the home shortcuts. Add one Settings entry instead.
+if 'QuickAction("⚙️", "Settings"' not in s:
+    tile = next((line for line in s.splitlines() if "QuickAction(" in line and '"Cloud link"' in line), None)
+    if tile is None:
+        raise SystemExit("Could not locate Cloud link home shortcut")
+    indent = tile[:len(tile)-len(tile.lstrip())]
+    s = s.replace(tile, tile + "\n" + indent + 'QuickAction("⚙️", "Settings", "App preferences & device controls"),', 1)
+
+app_start = s.index("fun AmityApp(")
+app_end = s.index("\n// ---------- Connectivity ----------", app_start)
+app = s[app_start:app_end]
+cloud_action = 'action.title == "Cloud link" -> navigateTo("cloud")'
+if cloud_action not in app:
+    raise SystemExit("Could not locate Cloud link action handler")
+if 'action.title == "Settings"' not in app:
+    app = app.replace(cloud_action, cloud_action + '\n                        action.title == "Settings" -> navigateTo("settings")', 1)
+
+home_branch = app.find("else HomeScreen(")
+if home_branch < 0:
+    raise SystemExit("Could not locate HomeScreen route")
+if 'screen == "connectivity"' not in app:
+    app = app[:home_branch] + 'else if (screen == "settings") AmitySettingsScreen(onBack = { goBack() }, onConnectivity = { navigateTo("connectivity") }, onLegal = { navigateTo("legal") })\n            else if (screen == "connectivity") ConnectivityScreen(onBack = { goBack() })\n            ' + app[home_branch:]
+s = s[:app_start] + app + s[app_end:]
+main.write_text(s, encoding="utf-8")
+print("Added AmitySA Bluetooth & Wi-Fi screen with permission requests, Wi-Fi status, parent/child discoverability, scanning, pairing, phone connection, Classic/BLE accessory discovery and BLE GATT connection.")
