@@ -56,6 +56,9 @@ jobs:
       - name: Add optional encrypted remember-login feature
         run: python3 scripts/apply_remember_login.py
 
+      - name: Apply approved AmitySA neon glass visual design
+        run: python3 scripts/apply_neon_glass_design.py
+
       - name: Print Kotlin compile context for targeted repairs
         run: python3 scripts/print_compile_context.py
 
