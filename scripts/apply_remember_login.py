@@ -56,7 +56,7 @@ once(
     "prefill saved details")
 once(
     '            is AuthResult.Success -> onAuthenticated(result.account)',
-    '            is AuthResult.Success -> onAuthenticated(result.account, if (registering) null else password)',
+    '            is AuthResult.Success -> onAuthenticated(result.account, password)',
     "successful sign-in")
 once(
     """            if (registering) {
