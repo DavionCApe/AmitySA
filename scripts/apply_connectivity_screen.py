@@ -254,12 +254,13 @@ fun ConnectivityScreen(onBack: () -> Unit) {
 screen.write_text(ui, encoding="utf-8")
 
 # Add one home shortcut, one route and one screen branch. Fail closed if source shape changed.
-if 'QuickAction("🔗", "Bluetooth & Wi-Fi"' not in s:
+# Keep device connectivity out of the home shortcuts. Add one Settings entry instead.
+if 'QuickAction("⚙️", "Settings"' not in s:
     tile = next((line for line in s.splitlines() if "QuickAction(" in line and '"Cloud link"' in line), None)
     if tile is None:
         raise SystemExit("Could not locate Cloud link home shortcut")
     indent = tile[:len(tile)-len(tile.lstrip())]
-    s = s.replace(tile, tile + "\n" + indent + 'QuickAction("🔗", "Bluetooth & Wi-Fi", "Connect phones & accessories"),', 1)
+    s = s.replace(tile, tile + "\n" + indent + 'QuickAction("⚙️", "Settings", "App preferences & device controls"),', 1)
 
 app_start = s.index("fun AmityApp(")
 app_end = s.index("\n// ---------- Connectivity ----------", app_start)
@@ -267,14 +268,71 @@ app = s[app_start:app_end]
 cloud_action = 'action.title == "Cloud link" -> navigateTo("cloud")'
 if cloud_action not in app:
     raise SystemExit("Could not locate Cloud link action handler")
-if 'action.title == "Bluetooth & Wi-Fi"' not in app:
-    app = app.replace(cloud_action, cloud_action + '\n                        action.title == "Bluetooth & Wi-Fi" -> navigateTo("connectivity")', 1)
+if 'action.title == "Settings"' not in app:
+    app = app.replace(cloud_action, cloud_action + '\n                        action.title == "Settings" -> navigateTo("settings")', 1)
 
 home_branch = app.find("else HomeScreen(")
 if home_branch < 0:
     raise SystemExit("Could not locate HomeScreen route")
 if 'screen == "connectivity"' not in app:
-    app = app[:home_branch] + 'else if (screen == "connectivity") ConnectivityScreen(onBack = { goBack() })\n            ' + app[home_branch:]
+    app = app[:home_branch] + 'else if (screen == "settings") AmitySettingsScreen(onBack = { goBack() }, onConnectivity = { navigateTo("connectivity") }, onLegal = { navigateTo("legal") })\n            else if (screen == "connectivity") ConnectivityScreen(onBack = { goBack() })\n            ' + app[home_branch:]
 s = s[:app_start] + app + s[app_end:]
 main.write_text(s, encoding="utf-8")
 print("Added AmitySA Bluetooth & Wi-Fi screen with permission requests, Wi-Fi status, parent/child discoverability, scanning, pairing, phone connection, Classic/BLE accessory discovery and BLE GATT connection.")
+
+@SuppressLint("BatteryLife")
+@Composable
+fun AmitySettingsScreen(onBack: () -> Unit, onConnectivity: () -> Unit, onLegal: () -> Unit) {
+    val context = LocalContext.current
+    fun openSystemSettings(intent: Intent) {
+        try { intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); context.startActivity(intent) }
+        catch (_: Exception) {
+            try { context.startActivity(Intent(android.provider.Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            catch (_: Exception) { }
+        }
+    }
+    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Settings", style = MaterialTheme.typography.headlineSmall)
+            TextButton(onClick = onBack) { Text("Back") }
+        }
+        Text("Manage AmitySA, device permissions and connection preferences.", style = MaterialTheme.typography.bodyMedium)
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Connections", style = MaterialTheme.typography.titleMedium)
+                Text("Bluetooth, Wi-Fi, parent/child phone pairing and accessories.")
+                Button(onClick = onConnectivity, modifier = Modifier.fillMaxWidth()) { Text("Bluetooth & Wi-Fi") }
+            }
+        }
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Notifications", style = MaterialTheme.typography.titleMedium)
+                Text("Manage AmitySA notification permission and notification channels in Android.")
+                OutlinedButton(onClick = { openSystemSettings(Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)) }, modifier = Modifier.fillMaxWidth()) { Text("Notification settings") }
+            }
+        }
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Permissions & privacy", style = MaterialTheme.typography.titleMedium)
+                Text("Review camera, location, nearby devices and other permissions granted to AmitySA.")
+                OutlinedButton(onClick = { openSystemSettings(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + context.packageName))) }, modifier = Modifier.fillMaxWidth()) { Text("App permissions") }
+                OutlinedButton(onClick = onLegal, modifier = Modifier.fillMaxWidth()) { Text("Terms, privacy & safety") }
+            }
+        }
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Battery & background activity", style = MaterialTheme.typography.titleMedium)
+                Text("Review battery restrictions if you expect background alerts or location updates. Android may still limit background work.")
+                OutlinedButton(onClick = { openSystemSettings(Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }, modifier = Modifier.fillMaxWidth()) { Text("Battery optimisation settings") }
+            }
+        }
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Accessibility", style = MaterialTheme.typography.titleMedium)
+                Text("Open Android accessibility settings for system-wide text size, magnification and assistance features.")
+                OutlinedButton(onClick = { openSystemSettings(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)) }, modifier = Modifier.fillMaxWidth()) { Text("Accessibility settings") }
+            }
+        }
+        Text("Android controls sensitive permissions. AmitySA will request access when a feature needs it; you can change or revoke access at any time in Android settings.", style = MaterialTheme.typography.bodySmall)
+    }
+}
