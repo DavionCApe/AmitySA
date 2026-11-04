@@ -226,6 +226,9 @@ for imp in [
         first = s.find("import ")
         s = s[:first] + imp + "\n" + s[first:]
 
+# Imports may have been inserted above the composables; refresh offsets before replacing.
+start = s.index("@Composable\nprivate fun HomeScreen(")
+end = s.index("\n@Composable\nprivate fun Header(", start)
 s = s[:start] + new_home + "\n" + welcome_screen + s[end:]
 main.write_text(s, encoding="utf-8")
 print("Applied six-theme palette and animated scroll-to-top home layout.")
