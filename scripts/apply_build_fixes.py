@@ -60,23 +60,21 @@ if home_start < 0 or header_start < 0:
     raise SystemExit("Could not locate HomeScreen and Header declarations")
 home_block = source[home_start:header_start]
 if "onMenuAction: (String) -> Unit" not in home_block:
-    home_block, signature_count = re.subn(
+    home_block, count = re.subn(
         r"(?m)^(\\s*)onAction: \\(QuickAction\\) -> Unit\\s*$",
         r"\\1onAction: (QuickAction) -> Unit,\\n\\1onMenuAction: (String) -> Unit",
-        home_block,
-        count=1
+        home_block, count=1
     )
-    if signature_count != 1:
+    if count != 1:
         raise SystemExit("Could not add onMenuAction to HomeScreen signature")
-home_block, header_count = re.subn(
+source = source[:home_start] + home_block + source[header_start:]
+source, header_count = re.subn(
     r"Header\\(account\\.username,\\s*onOpenThemes\\s*\\)",
     "Header(account.username, onOpenThemes, onMenuAction)",
-    home_block,
-    count=1
+    source, count=1
 )
 if header_count != 1:
     raise SystemExit("Could not locate Header call in HomeScreen")
-source = source[:home_start] + home_block + source[header_start:]
 main_activity.write_text(source, encoding="utf-8")
 
 # Use the explicit osmdroid Polygon setter to avoid resolving the outer list.
