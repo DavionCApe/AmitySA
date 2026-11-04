@@ -36,8 +36,10 @@ jobs:
           source_logo="assets/amitysa_home_logo.jpg"
           test -s "$source_logo"
           mkdir -p app/src/main/res/drawable-nodpi
-          # Android treats same-named PNG/JPG files as duplicate drawable resources.
-          rm -f app/src/main/res/drawable-nodpi/amity_logo.png
+          # Remove every old variant so Android cannot select a stale drawable from
+          # drawable/, drawable-hdpi/, mipmap/ or another qualified resource folder.
+          find app/src/main/res -type f \( -name 'amity_logo.png' -o -name 'amity_logo.jpg' -o -name 'amity_logo.webp' -o -name 'amity_logo.xml' \) -delete
+          mkdir -p app/src/main/res/drawable-nodpi
           cp "$source_logo" app/src/main/res/drawable-nodpi/amity_logo.jpg
 
 
@@ -71,21 +73,6 @@ jobs:
       - name: Apply approved AmitySA neon glass visual design
         run: python3 scripts/apply_neon_glass_design.py
 
-      - name: Animate the existing AmitySA home screen logo
-        run: python3 scripts/apply_floating_logo.py
-
-      - name: Verify the replacement logo is wired into the actual home screen
-        shell: bash
-        run: |
-          set -euo pipefail
-          kotlin_file=app/src/main/java/com/amitysa/app/MainActivity.kt
-          logo_file=app/src/main/res/drawable-nodpi/amity_logo.jpg
-          test -s "$logo_file"
-          grep -Fq 'private fun FloatingAmityLogo' "$kotlin_file"
-          grep -Fq 'painter = painterResource(R.drawable.amity_logo)' "$kotlin_file"
-          grep -Fq 'FloatingAmityLogo(' "$kotlin_file"
-          echo "Verified: the replacement AmitySA logo is installed and used by the home screen."
-
       - name: Apply AmitySA Fantasy UI and Sci-Fi HUD design
         run: python3 scripts/apply_fui_hud.py
 
@@ -100,6 +87,25 @@ jobs:
 
       - name: Add in-app Bluetooth and Wi-Fi connection screen
         run: python3 scripts/apply_connectivity_screen.py
+
+      - name: Apply the replacement logo after all home-screen design changes
+        run: python3 scripts/apply_floating_logo.py
+
+      - name: Verify the final home-screen logo and resource
+        shell: bash
+        run: |
+          set -euo pipefail
+          kotlin_file=app/src/main/java/com/amitysa/app/MainActivity.kt
+          logo_file=app/src/main/res/drawable-nodpi/amity_logo.jpg
+          test -s "$logo_file"
+          grep -Fq 'private fun FloatingAmityLogo' "$kotlin_file"
+          grep -Fq 'painter = painterResource(R.drawable.amity_logo)' "$kotlin_file"
+          grep -Fq 'FloatingAmityLogo(' "$kotlin_file"
+          if grep -A45 -F 'private fun Header(' "$kotlin_file" | grep -Fq 'Image('; then
+            echo "Header still contains a direct Image call; logo replacement failed."
+            exit 1
+          fi
+          echo "Verified: final home-screen Header uses the replacement floating AmitySA logo."
 
       - name: Print Kotlin compile context for targeted repairs
         run: python3 scripts/print_compile_context.py
