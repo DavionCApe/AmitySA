@@ -43,7 +43,7 @@ print("Applied and verified ChildStore school methods and compatible splash scal
 family_map = root / "app/src/main/java/com/amitysa/app/FamilyMapScreen.kt"
 map_source = family_map.read_text(encoding="utf-8")
 map_source, map_count = re.subn(
-    r'var mapType by remember \{?mutableIntStateOf\(MapType\.NORMAL\)\}?',
+    r'var mapType by remember \\{\\s*mutableIntStateOf\\(MapType\\.NORMAL\\)\\s*\\}',
     'var mapType by remember { mutableStateOf(MapType.NORMAL) }',
     map_source,
     count=1
