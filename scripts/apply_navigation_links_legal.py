@@ -47,17 +47,18 @@ s = once(s,
 start = s.index("fun AmityApp(")
 end = s.index("\n// ---------- Connectivity ----------", start)
 app = s[start:end]
+app = app.replace('onBack = { screen = "home" }', 'onBack = { goBack() }')
 for old, new in [
-    ('onBack = { screen = "home" }', 'onBack = { goBack() }'),
     ('onDone = { screen = "children" }', 'onDone = { goBack() }'),
     ('onClose = { screen = "home" }', 'onClose = { goBack() }'),
     ('onSetup = { screen = "sosSetup" }', 'onSetup = { navigateTo("sosSetup") }'),
     ('SosSetupScreen(acc) { screen = "home" }', 'SosSetupScreen(acc) { goBack() }'),
+    ('FamilyMapScreen(acc) { screen = "home" }', 'FamilyMapScreen(acc) { goBack() }'),
     ('ZonesScreen(acc) { screen = "home" }', 'ZonesScreen(acc) { goBack() }'),
+    ('FamilyCheckInScreen(acc) { screen = "home" }', 'FamilyCheckInScreen(acc) { goBack() }'),
     ('CloudScreen(acc) { screen = "home" }', 'CloudScreen(acc) { goBack() }'),
 ]:
-    if old in app:
-        app = app.replace(old, new, 1)
+    app = app.replace(old, new)
 
 app = re.sub(r'screen = "([A-Za-z]+)"', r'navigateTo("\1")', app)
 app = app.replace('''        } else {
