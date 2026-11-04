@@ -62,6 +62,8 @@ jobs:
 
       - name: Add animated JARVIS command-centre HUD across all app pages
         run: python3 scripts/apply_jarvis_motion.py
+      - name: Style app navigation with JARVIS holographic command dock
+        run: python3 scripts/apply_jarvis_navigation.py
       - name: Keep preview shortcut on signup/sign-in screen only
         run: python3 scripts/apply_auth_preview_scope.py
 
