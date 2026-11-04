@@ -35,6 +35,9 @@ jobs:
       - name: Apply visual and scrolling upgrades
         run: python3 scripts/apply_ui_upgrade.py
 
+      - name: Insert South African emergency services page
+        run: python3 scripts/apply_emergency_directory.py
+
       - name: Verify dropdown callback survives UI generation
         shell: bash
         run: |
