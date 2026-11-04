@@ -56,6 +56,18 @@ jobs:
       - name: Add optional encrypted remember-login feature
         run: python3 scripts/apply_remember_login.py
 
+      - name: Apply previous-page navigation history and back behavior
+        run: python3 scripts/apply_navigation_history.py
+
+      - name: Verify previous-page navigation is installed
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=app/src/main/java/com/amitysa/app/MainActivity.kt
+          grep -Fq 'val screenHistory = remember { mutableStateListOf<String>() }' "$file"
+          grep -Fq 'fun navigateBack()' "$file"
+          grep -Fq '-> navigateBack()' "$file"
+
       - name: Print Kotlin compile context for targeted repairs
         run: python3 scripts/print_compile_context.py
 
