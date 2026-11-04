@@ -15,7 +15,28 @@ def once(source, old, new, label):
         raise SystemExit(f"{label}: expected exactly one source match, found {n}; no files written")
     return source.replace(old, new, 1)
 
-state_match = re.search(r'(?m)^(\s*var screen by remember(?:Saveable)?\s*\{[^\n]*\})\s*
+state_match = re.search(r'(?m)^(\s*var screen by remember(?:Saveable)?\s*\{[^\n]*\})\s*$', s)
+if not state_match:
+    candidates = [line.strip() for line in s.splitlines() if "var screen" in line]
+    raise SystemExit("Navigation history state: screen state declaration not found; candidates=" + repr(candidates))
+replacement = state_match.group(1) + '''
+    val screenHistory = remember { mutableStateListOf<String>() }
+    fun navigateTo(target: String) {
+        if (screen != target) {
+            screenHistory.add(screen)
+            screen = target
+        }
+    }
+    fun goBack() {
+        if (screenHistory.isNotEmpty()) {
+            screen = screenHistory.removeAt(screenHistory.lastIndex)
+        } else {
+            screenHistory.clear()
+            screen = "home"
+        }
+    }
+'''
+s = s[:state_match.start()] + replacement + s[state_match.end():]
 back_start = s.find("BackHandler(")
 if back_start < 0:
     raise SystemExit("Android BackHandler was not found; navigation safety check stopped")
