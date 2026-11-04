@@ -65,14 +65,10 @@ else:
     signature_count = 1
 if signature_count != 1:
     raise SystemExit("Could not add onMenuAction to HomeScreen signature")
-source, header_count = re.subn(
-    r'item \{ Header\(account\.username, onOpenThemes\) \}',
-    'item { Header(account.username, onOpenThemes, onMenuAction) }',
-    source,
-    count=1
-)
-if header_count != 1:
-    raise SystemExit("Could not pass onMenuAction from HomeScreen to Header")
+header_marker = "Header(account.username, onOpenThemes)"
+if source.count(header_marker) != 1:
+    raise SystemExit("Could not locate Header call in HomeScreen")
+source = source.replace(header_marker, "Header(account.username, onOpenThemes, onMenuAction)", 1)
 main_activity.write_text(source, encoding="utf-8")
 
 # Use the explicit osmdroid Polygon setter to avoid resolving the outer list.
