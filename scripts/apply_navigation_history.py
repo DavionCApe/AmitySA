@@ -38,16 +38,16 @@ if app_start < 0 or app_end < 0:
     raise SystemExit("Could not locate AmityApp boundaries")
 app = source[app_start:app_end]
 
-# Replace the former special-case Android back behavior if it exists.
-back_pattern = re.compile(
-    r'(?s)BackHandler\(enabled\s*=\s*acc\s*!=\s*null\s*&&\s*screen\s*!=\s*"home"\)\s*\{\s*'
-    r'screen\s*=\s*if\s*\(screen\s*==\s*"edit"\)\s*"children"\s*else\s*"home"\s*\}'
-)
-app = back_pattern.sub(
-    'BackHandler(enabled = acc != null && screen != "home") { navigateBack() }',
-    app,
-    count=1
-)
+# Replace any simple existing BackHandler, regardless of its previous condition.
+back_handler = 'BackHandler(enabled = acc != null && screen != "home") { navigateBack() }'
+generic_back = re.compile(r'BackHandler\s*\([^)]*\)\s*\{[^{}]*\}', re.S)
+if generic_back.search(app):
+    app = generic_back.sub(back_handler, app, count=1)
+else:
+    marker = "    val lifecycleOwner = LocalLifecycleOwner.current"
+    if marker not in app:
+        raise SystemExit("Could not find safe insertion point for Android BackHandler")
+    app = app.replace(marker, "    " + back_handler + "\n" + marker, 1)
 
 for route in ["home", "children", "edit", "sos", "sosSetup", "zones", "cloud", "security", "map", "checkin"]:
     app = re.sub(
@@ -81,20 +81,9 @@ app = app.replace(
     'account = null; screenHistory.clear(); screen = "home"; locked = false'
 )
 
-# Ensure Android's system back button uses the same previous-page stack.
-if "BackHandler(" not in app:
-    marker = "    val lifecycleOwner = LocalLifecycleOwner.current"
-    if marker not in app:
-        raise SystemExit("Could not find safe insertion point for Android BackHandler")
-    app = app.replace(
-        marker,
-        '    BackHandler(enabled = acc != null && screen != "home") { navigateBack() }\n' + marker,
-        1
-    )
-
 if 'fun navigateBack()' not in app or 'val screenHistory = remember { mutableStateListOf<String>() }' not in app:
     raise SystemExit("Navigation history helpers were not installed")
-if 'BackHandler(enabled = acc != null && screen != "home") { navigateBack() }' not in app:
+if back_handler not in app:
     raise SystemExit("Android BackHandler is not connected to navigation history")
 
 source = source[:app_start] + app + source[app_end:]
