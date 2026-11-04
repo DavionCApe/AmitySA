@@ -9,7 +9,7 @@ def replace_once(old: str, new: str, label: str):
         raise SystemExit(f"Neon glass upgrade stopped: could not find {label}")
     s = s.replace(old, new, 1)
 
-# Premium midnight palette: deep navy, electric cyan and violet glass.
+# Electric navy theme with cyan and violet highlights.
 replace_once(
 '''private val Midnight = AmityTheme(
     "midnight", "Midnight (logo colours)", true,
@@ -20,31 +20,52 @@ replace_once(
     "midnight", "AmitySA Neon Glass", true,
     Color(0xFF050B1B), Color(0xFF102344), Color(0xFFF5FAFF), Color(0xFFA9BEDA),
     Color(0xFF18CFFF), Color(0xFF9A72FF), Color(0xFF031326)
-)''',
-"Midnight palette"
-)
-replace_once('''internal val HeaderTop = Color(0xFF0B0E14)
+)''', "Midnight palette")
+replace_once(
+'''internal val HeaderTop = Color(0xFF0B0E14)
 internal val HeaderBottom = Color(0xFF05070B)
 internal val Gold = Color(0xFFF5B942)
 internal val Danger = Color(0xFFD93025)''',
 '''internal val HeaderTop = Color(0xFF08265D)
 internal val HeaderBottom = Color(0xFF030817)
 internal val Gold = Color(0xFF38E7FF)
-internal val Danger = Color(0xFFFF315E)''',
-"header palette"
-)
+internal val Danger = Color(0xFFFF315E)''', "header palette")
 
-# Give the header a layered blue glow while preserving the existing logo and theme action.
+# Add a subtle neon outline to the existing material cards without changing their actions.
+replace_once(
+'''        colors = CardDefaults.cardColors(containerColor = t.card),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {''',
+'''        colors = CardDefaults.cardColors(containerColor = t.card.copy(alpha = 0.94f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, t.primary.copy(alpha = 0.34f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {''', "status glass card")
+replace_once(
+'''        colors = CardDefaults.cardColors(containerColor = t.card),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {''',
+'''        colors = CardDefaults.cardColors(containerColor = t.card.copy(alpha = 0.94f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, t.accent.copy(alpha = 0.38f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {''', "action glass card")
+
+# Make the brand header feel brighter and more dimensional.
 replace_once(
 '''            .background(Brush.verticalGradient(listOf(HeaderTop, HeaderBottom)))''',
-'''            .background(
-                Brush.linearGradient(
-                    listOf(Color(0xFF0A3B88), Color(0xFF071A43), HeaderBottom)
-                )
-            )''',
-"header glass gradient"
-)
+'''            .background(Brush.linearGradient(listOf(Color(0xFF0A3B88), Color(0xFF071A43), HeaderBottom)))''',
+"header gradient")
+replace_once(
+'''        Text("Welcome back, $username", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)''',
+'''        Text("AMITYSA  •  FAMILY SAFETY", color = Color(0xFF69E7FF), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+        Spacer(Modifier.height(5.dp))
+        Text("Welcome back, $username", color = Color.White.copy(alpha = 0.88f), fontSize = 14.sp)''',
+"brand header caption")
 
-# Persist the palette and header treatment; all existing screens and safety flows remain intact.
+# Keep the SOS action prominent, but use the approved blue-to-violet neon treatment.
+replace_once(
+'''            .background(Brush.horizontalGradient(listOf(Danger, Color(0xFFB3261E))))''',
+'''            .background(Brush.horizontalGradient(listOf(Color(0xFF087BDB), Color(0xFF5B42C8), Color(0xFF9A3ED0))))''',
+"SOS neon gradient")
+
 p.write_text(s, encoding="utf-8")
-print("AmitySA neon glass palette and header treatment applied.")
+print("AmitySA neon glass theme, header, SOS and outlined dashboard cards applied.")
