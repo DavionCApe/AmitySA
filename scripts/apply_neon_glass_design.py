@@ -54,13 +54,7 @@ replace_once(
 '''            .background(Brush.verticalGradient(listOf(HeaderTop, HeaderBottom)))''',
 '''            .background(Brush.linearGradient(listOf(Color(0xFF0A3B88), Color(0xFF071A43), HeaderBottom)))''',
 "header gradient")
-replace_once(
-'''        Text("Welcome back, $username", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)''',
-'''        Text("AMITYSA  •  FAMILY SAFETY", color = Color(0xFF69E7FF), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-        Spacer(Modifier.height(5.dp))
-        Text("Welcome back, $username", color = Color.White.copy(alpha = 0.88f), fontSize = 14.sp)''',
-"brand header caption")
-
+# Header subtitle is intentionally left to the existing generated header layout.
 # Keep the SOS action prominent, but use the approved blue-to-violet neon treatment.
 replace_once(
 '''            .background(Brush.horizontalGradient(listOf(Danger, Color(0xFFB3261E))))''',
