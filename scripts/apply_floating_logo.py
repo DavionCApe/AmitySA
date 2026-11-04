@@ -18,10 +18,13 @@ add_import("import androidx.compose.foundation.border")
 
 # Locate the logo image inside Header rather than relying on a brittle exact
 # indentation/string match (other UI generation steps adjust the header).
-header_match = re.search(r"@Composable\s+private fun Header\([^)]*\)\s*\{", s)
-if not header_match:
+header_decl = re.search(r"@Composable\s+private fun Header\(", s)
+if not header_decl:
     raise SystemExit("Floating logo upgrade stopped: Header composable not found")
-header_start = header_match.end()
+header_open = s.find("{", header_decl.end())
+if header_open < 0:
+    raise SystemExit("Floating logo upgrade stopped: Header body not found")
+header_start = header_open + 1
 next_composable = s.find("\n@Composable", header_start)
 header_end = next_composable if next_composable >= 0 else len(s)
 header = s[header_start:header_end]
