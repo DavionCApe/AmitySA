@@ -56,6 +56,9 @@ jobs:
       - name: Apply consistent app-wide light and dark themes
         run: python3 scripts/apply_theme_consistency.py
 
+      - name: Apply AmitySA FUI and sci-fi HUD styling across all screens
+        run: python3 scripts/apply_fui_hud.py
+
       - name: Keep preview shortcut on signup/sign-in screen only
         run: python3 scripts/apply_auth_preview_scope.py
 
