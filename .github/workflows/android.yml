@@ -69,6 +69,9 @@ jobs:
         run: python3 scripts/apply_jarvis_motion.py
       - name: Style app navigation with JARVIS holographic command dock
         run: python3 scripts/apply_jarvis_navigation.py
+
+      - name: Redesign the AmitySA home dashboard as a JARVIS command centre
+        run: python3 scripts/apply_dashboard_redesign.py
       - name: Keep preview shortcut on signup/sign-in screen only
         run: python3 scripts/apply_auth_preview_scope.py
 
