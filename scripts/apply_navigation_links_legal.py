@@ -16,15 +16,41 @@ def once(source, old, new, label):
     return source.replace(old, new, 1)
 
 state_match = re.search(r'(?m)^(\s*var screen by remember(?:Saveable)?\s*\{[^\n]*\})\s*
-s = once(s,
-'''    BackHandler(enabled = acc != null && screen != "home") {
-        screen = if (screen == "edit") "children" else "home"
-    }
-''',
-'''    BackHandler(enabled = (acc != null && screen != "home") || pairing) {
+back_start = s.find("BackHandler(")
+if back_start < 0:
+    raise SystemExit("Android BackHandler was not found; navigation safety check stopped")
+paren_open = s.find("(", back_start)
+paren_depth = 0
+paren_end = None
+for index in range(paren_open, len(s)):
+    if s[index] == "(":
+        paren_depth += 1
+    elif s[index] == ")":
+        paren_depth -= 1
+        if paren_depth == 0:
+            paren_end = index + 1
+            break
+if paren_end is None:
+    raise SystemExit("Could not parse Android BackHandler parameters")
+body_open = s.find("{", paren_end)
+if body_open < 0:
+    raise SystemExit("Could not locate Android BackHandler body")
+brace_depth = 0
+body_end = None
+for index in range(body_open, len(s)):
+    if s[index] == "{":
+        brace_depth += 1
+    elif s[index] == "}":
+        brace_depth -= 1
+        if brace_depth == 0:
+            body_end = index + 1
+            break
+if body_end is None:
+    raise SystemExit("Could not parse Android BackHandler body")
+new_back = '''BackHandler(enabled = (acc != null && screen != "home") || pairing) {
         if (pairing) pairing = false else goBack()
-    }
-''', "Android BackHandler")
+    }'''
+s = s[:back_start] + new_back + s[body_end:]
 
 start = s.index("fun AmityApp(")
 end = s.index("\n// ---------- Connectivity ----------", start)
