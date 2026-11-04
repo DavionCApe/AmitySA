@@ -62,7 +62,8 @@ private fun HomeScreen(
     online: Boolean,
     onOpenThemes: () -> Unit,
     onSos: () -> Unit,
-    onAction: (QuickAction) -> Unit
+    onAction: (QuickAction) -> Unit,
+    onMenuAction: (String) -> Unit
 ) {
     val t = LocalAmity.current
     val ctx = LocalContext.current
@@ -84,7 +85,7 @@ private fun HomeScreen(
             contentPadding = PaddingValues(bottom = 112.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { Header(account.username, onOpenThemes) }
+            item { Header(account.username, onOpenThemes, onMenuAction) }
             if (!online) item { OfflineBanner() }
             item { StatusCard(online) }
             item { SosCard(onSos) }
