@@ -49,12 +49,12 @@ for res in resource_roots:
 
 for manifest in Path("app/src").glob("*/AndroidManifest.xml"):
     text = manifest.read_text(encoding="utf-8")
-    app_match = re.search(r"<application\\b[^>]*>", text, flags=re.DOTALL)
+    app_match = re.search(r"<application\b[^>]*>", text, flags=re.DOTALL)
     if not app_match:
         continue
     tag = app_match.group(0)
-    tag = re.sub(r'\\s+android:icon="[^"]*"', "", tag)
-    tag = re.sub(r'\\s+android:roundIcon="[^"]*"', "", tag)
+    tag = re.sub(r'\s+android:icon="[^"]*"', "", tag)
+    tag = re.sub(r'\s+android:roundIcon="[^"]*"', "", tag)
     tag = tag[:-1] + ' android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">'
     text = text[:app_match.start()] + tag + text[app_match.end():]
     manifest.write_text(text, encoding="utf-8")
