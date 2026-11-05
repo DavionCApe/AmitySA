@@ -42,6 +42,16 @@ jobs:
           mkdir -p app/src/main/res/drawable-nodpi
           cp "$source_logo" app/src/main/res/drawable-nodpi/amity_logo.jpg
 
+      - name: Generate Android launcher icons from the exact home artwork
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet Pillow
+          python3 scripts/apply_amitysa_artwork_launcher_icon.py
+          test -s app/src/main/res/mipmap-mdpi/ic_launcher.png
+          test -s app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+          grep -R -q 'android:icon="@mipmap/ic_launcher"' app/src
+
 
       - name: Apply Kotlin compile fixes
         run: python3 scripts/apply_build_fixes.py
