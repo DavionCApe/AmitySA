@@ -127,16 +127,14 @@ private fun JarvisStatus(online: Boolean) {
 }
 
 @Composable
-private fun JarvisRadar(online: Boolean, children: Int, zones: Int) {
+private fun JarvisRadar(online: Boolean, children: Int, zones: Int, processing: Boolean = false) {
     val motion = rememberInfiniteTransition(label = "amityAiCore")
-    val processing = false // Set true only while a real AI request is running.
     val outerAngle by motion.animateFloat(0f, 360f,
         infiniteRepeatable(tween(if (processing) 3000 else 18000, easing = androidx.compose.animation.core.LinearEasing)), label = "outerOrbit")
     val innerAngle by motion.animateFloat(360f, 0f,
         infiniteRepeatable(tween(if (processing) 1500 else 11000, easing = androidx.compose.animation.core.LinearEasing)), label = "innerOrbit")
-    val processing = false // Set true only while a real AI request is running.
     val pulse by motion.animateFloat(if (processing) 0.72f else 0.45f, 1f,
-        infiniteRepeatable(tween(if (processing) 600 else 1450), repeatMode = androidx.compose.animation.core.RepeatMode.Reverse), label = "corePulse")
+        infiniteRepeatable(tween(if (processing) 600 else 3000), repeatMode = androidx.compose.animation.core.RepeatMode.Reverse), label = "corePulse")
     val outerDuration = if (processing) 3000 else 18000
     val innerDuration = if (processing) 1500 else 11000
     val blue = Color(0xFF0077FF)
@@ -152,7 +150,7 @@ private fun JarvisRadar(online: Boolean, children: Int, zones: Int) {
                         fontWeight = FontWeight.ExtraBold, letterSpacing = 1.7.sp)
                     Text("AUTONOMOUS FAMILY SAFETY SYSTEM", color = Color(0xFF668FA4), fontSize = 7.sp, letterSpacing = 1.1.sp)
                 }
-                Text("●  ${if (online) "ONLINE" else "LOCAL"}", color = if (online) Color(0xFF45E6B0) else Color(0xFFFFA24A),
+                Text("●  ${if (processing) "PROCESSING" else if (online) "ONLINE" else "LOCAL"}", color = if (processing) blue else if (online) Color(0xFF45E6B0) else Color(0xFFFFA24A),
                     fontSize = 8.sp, fontWeight = FontWeight.ExtraBold)
             }
             Box(Modifier.fillMaxWidth().height(258.dp), contentAlignment = Alignment.Center) {
