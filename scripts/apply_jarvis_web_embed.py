@@ -107,6 +107,39 @@ private fun JarvisWebEmbed(
 
 '''
 source = source.replace(marker, component + marker, 1)
+
+# Persistent native emergency dock anchored to the dashboard viewport.
+dock_marker = '        AnimatedVisibility(showTop, Modifier.align(Alignment.BottomEnd)'
+dock = r'''        Row(
+            Modifier.align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color(0xF02A190B))
+                .clickable { onSos() }
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("SOS", color = Color(0xFF171006), fontSize = 11.sp,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFFFF9100)).padding(horizontal = 10.dp, vertical = 8.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("EMERGENCY SERVICES", color = Color(0xFFFFD09A),
+                    fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                Text("Tap for the AmitySA emergency response action",
+                    color = Color(0xFFB99A78), fontSize = 8.sp)
+            }
+            Text("OPEN  ›", color = Color(0xFFFF9100), fontSize = 9.sp,
+                fontWeight = FontWeight.Bold)
+        }
+'''
+if dock_marker not in source:
+    raise SystemExit("Could not locate dashboard floating control insertion point")
+if 'Text("EMERGENCY SERVICES"' not in source:
+    source = source.replace(dock_marker, dock + "\n" + dock_marker, 1)
 main.write_text(source, encoding="utf-8")
 
 manifest = root / "app/src/main/AndroidManifest.xml"
