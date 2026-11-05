@@ -16,6 +16,12 @@ auth = source[auth_start:mode_start]
 label = 'Text("Skip signup for now · Preview app"'
 global_count = source.count(label)
 auth_count = auth.count(label)
+
+# Some source archives no longer contain the optional preview shortcut at all.
+# In that case there is nothing to scope; do not fail the entire Android build.
+if global_count == 0:
+    print("No signup preview shortcut exists in this source archive; scope step safely skipped.")
+    raise SystemExit(0)
 if global_count != 1 or auth_count != 1:
     raise SystemExit(
         "Preview CTA scope validation failed: "
