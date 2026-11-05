@@ -93,5 +93,19 @@ if "import androidx.activity.compose.BackHandler" not in source:
         raise SystemExit("Could not locate Kotlin package declaration")
     source = source[:package_match.end()] + "\nimport androidx.activity.compose.BackHandler\n" + source[package_match.end():]
 
+# Fix stale ActivityRow references after all preceding UI generators have run.
+# The source Activity model has a title but no icon/time properties.
+icon_old = "Text(item.icon, fontSize = 22.sp)"
+time_old = "Text(item.time, color = t.inkSoft, fontSize = 12.sp)"
+icon_count = source.count(icon_old)
+time_count = source.count(time_old)
+if icon_count == 1 and time_count == 1:
+    source = source.replace(icon_old, 'Text("•", fontSize = 22.sp)', 1)
+    source = source.replace(time_old, 'Text("Activity recorded", color = t.inkSoft, fontSize = 12.sp)', 1)
+elif icon_count == 0 and time_count == 0:
+    raise SystemExit("ActivityRow icon/time source was not found after final UI generation")
+else:
+    raise SystemExit(f"Unexpected ActivityRow field counts: icon={icon_count}, time={time_count}")
+
 main.write_text(source, encoding="utf-8")
 print("Applied previous-page navigation and connected Android system Back to the history stack.")
