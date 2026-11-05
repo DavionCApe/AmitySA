@@ -94,18 +94,37 @@ if "import androidx.activity.compose.BackHandler" not in source:
     source = source[:package_match.end()] + "\nimport androidx.activity.compose.BackHandler\n" + source[package_match.end():]
 
 # Fix stale ActivityRow references after all preceding UI generators have run.
-# The source Activity model has a title but no icon/time properties.
+# Locate the composable containing item.time, then patch only that function. The
+# same item.icon expression is valid elsewhere (for example QuickAction rows).
 icon_old = "Text(item.icon, fontSize = 22.sp)"
 time_old = "Text(item.time, color = t.inkSoft, fontSize = 12.sp)"
-icon_count = source.count(icon_old)
-time_count = source.count(time_old)
+time_index = source.find(time_old)
+if time_index < 0:
+    raise SystemExit("ActivityRow time reference was not found after final UI generation")
+
+# Use the nearest preceding composable boundary and the next one as the scope.
+scope_start = source.rfind("\\n@Composable", 0, time_index)
+if scope_start < 0:
+    scope_start = source.rfind("\\nprivate fun ", 0, time_index)
+if scope_start < 0:
+    scope_start = source.rfind("\\nfun ", 0, time_index)
+scope_end = source.find("\\n@Composable", time_index + len(time_old))
+if scope_end < 0:
+    scope_end = len(source)
+if scope_start < 0 or scope_end <= time_index:
+    raise SystemExit("Could not isolate ActivityRow composable for compile repair")
+
+activity_scope = source[scope_start:scope_end]
+icon_count = activity_scope.count(icon_old)
+time_count = activity_scope.count(time_old)
 if icon_count == 1 and time_count == 1:
-    source = source.replace(icon_old, 'Text("•", fontSize = 22.sp)', 1)
-    source = source.replace(time_old, 'Text("Activity recorded", color = t.inkSoft, fontSize = 12.sp)', 1)
-elif icon_count == 0 and time_count == 0:
-    raise SystemExit("ActivityRow icon/time source was not found after final UI generation")
+    activity_scope = activity_scope.replace(icon_old, 'Text("•", fontSize = 22.sp)', 1)
+    activity_scope = activity_scope.replace(time_old, 'Text("Activity recorded", color = t.inkSoft, fontSize = 12.sp)', 1)
+    source = source[:scope_start] + activity_scope + source[scope_end:]
 else:
-    raise SystemExit(f"Unexpected ActivityRow field counts: icon={icon_count}, time={time_count}")
+    raise SystemExit(
+        f"Unexpected ActivityRow scoped field counts: icon={icon_count}, time={time_count}"
+    )
 
 main.write_text(source, encoding="utf-8")
 print("Applied previous-page navigation and connected Android system Back to the history stack.")
