@@ -15,6 +15,7 @@ def add_import(line: str):
 for line in [
     "import androidx.compose.foundation.Canvas",
     "import androidx.compose.ui.draw.alpha",
+    "import androidx.compose.ui.layout.ContentScale",
     "import androidx.compose.ui.geometry.Offset",
     "import androidx.compose.ui.graphics.drawscope.Stroke",
     "import androidx.compose.animation.core.LinearEasing"
@@ -83,6 +84,14 @@ new = '''Box(
             )
         )
     ) {
+        // The approved AmitySA family-shield artwork is the shared, low-opacity
+        // wallpaper behind the active page windows and HUD overlays.
+        Image(
+            painter = painterResource(R.drawable.amity_logo),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize().alpha(0.24f)
+        )
         AmityHudBackdrop()'''
 if old in s:
     s = s.replace(old, new, 1)
