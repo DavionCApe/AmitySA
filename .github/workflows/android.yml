@@ -117,6 +117,16 @@ jobs:
         with:
           gradle-version: 8.11.1
 
+      - name: Print final generated Kotlin around compiler failure
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=app/src/main/java/com/amitysa/app/MainActivity.kt
+          echo "===== FINAL MainActivity.kt lines 1645-1685 ====="
+          nl -ba "$file" | sed -n '1645,1685p'
+          echo "===== FINAL MainActivity.kt symbol references ====="
+          grep -nE '\\b(icon|time)\\b' "$file" | tail -40 || true
+
       - name: Build installable debug APKs
         run: gradle assembleDirectDebug assemblePlayDebug --no-daemon
 
