@@ -126,18 +126,12 @@ for number, line in enumerate(main_lines, 1):
 # and neutral timestamp label instead of unresolved properties.
 main_activity = root / "app/src/main/java/com/amitysa/app/MainActivity.kt"
 source = main_activity.read_text(encoding="utf-8")
-source, icon_count = re.subn(
-    r'Text\\(item\\.icon, fontSize = 22\\.sp\\)',
-    'Text("•", fontSize = 22.sp)',
-    source,
-    count=1
-)
-source, time_count = re.subn(
-    r'Text\\(item\\.time, color = t\\.inkSoft, fontSize = 12\\.sp\\)',
-    'Text("Activity recorded", color = t.inkSoft, fontSize = 12.sp)',
-    source,
-    count=1
-)
+icon_old = "Text(item.icon, fontSize = 22.sp)"
+time_old = "Text(item.time, color = t.inkSoft, fontSize = 12.sp)"
+icon_count = source.count(icon_old)
+time_count = source.count(time_old)
+source = source.replace(icon_old, 'Text("•", fontSize = 22.sp)', 1)
+source = source.replace(time_old, 'Text("Activity recorded", color = t.inkSoft, fontSize = 12.sp)', 1)
 if icon_count != 1 or time_count != 1:
     raise SystemExit(
         f"ActivityRow compile repair expected one icon/time field, found icon={icon_count}, time={time_count}"
