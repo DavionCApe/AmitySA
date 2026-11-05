@@ -121,6 +121,10 @@ if icon_count == 1 and time_count == 1:
     activity_scope = activity_scope.replace(icon_old, 'Text("•", fontSize = 22.sp)', 1)
     activity_scope = activity_scope.replace(time_old, 'Text("Activity recorded", color = t.inkSoft, fontSize = 12.sp)', 1)
     source = source[:scope_start] + activity_scope + source[scope_end:]
+    # Activity.title is not a non-null String in the imported model; stringify
+    # its value so Compose resolves the String Text overload for either variant.
+    activity_scope = activity_scope.replace("Text(item.title,", "Text(item.title.toString(),", 1)
+    source = source[:scope_start] + activity_scope + source[scope_end:]
 else:
     raise SystemExit(
         f"Unexpected ActivityRow scoped field counts: icon={icon_count}, time={time_count}"
