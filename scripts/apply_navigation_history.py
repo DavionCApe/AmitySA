@@ -123,8 +123,15 @@ if icon_count == 1 and time_count == 1:
     # Activity.title may not be a non-null String in the imported model;
     # stringify it so Compose resolves the String Text overload.
     activity_scope = activity_scope.replace("Text(item.title,", "Text(item.title.toString(),", 1)
-    # Write the complete updated composable exactly once. Reusing old slice
-    # offsets after a length-changing edit would leave duplicate closing braces.
+    # The generated source currently leaves two orphan closing braces after
+    # ActivityRow. Keep the function's own closing brace and discard only the
+    # two extra top-level braces before the next composable.
+    scope_lines = activity_scope.rstrip("\\n").split("\\n")
+    if len(scope_lines) >= 3 and all(line.strip() == "}" for line in scope_lines[-3:]):
+        scope_lines = scope_lines[:-2]
+        activity_scope = "\\n".join(scope_lines) + "\\n"
+    else:
+        raise SystemExit("ActivityRow did not end with the expected redundant brace pattern")
     source = source[:scope_start] + activity_scope + source[scope_end:]
 else:
     raise SystemExit(
