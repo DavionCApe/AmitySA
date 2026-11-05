@@ -13,7 +13,7 @@ for path in sorted(root.rglob("*.kt")):
 
 for filename, spans in {
     "FamilyMapScreen.kt": [(50, 57)],
-    "MainActivity.kt": [(375, 430), (770, 785)],
+    "MainActivity.kt": [(375, 430), (770, 785), (1545, 1570)],
     "OfflineFamilyMapView.kt": [(65, 76)],
 }.items():
     path = root / filename
