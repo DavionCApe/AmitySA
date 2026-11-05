@@ -72,6 +72,9 @@ jobs:
 
       - name: Redesign the AmitySA home dashboard as a JARVIS command centre
         run: python3 scripts/apply_dashboard_redesign.py
+      - name: Embed the JARVIS Multi-AI web HUD inside the native Android dashboard
+        run: python3 scripts/apply_jarvis_web_embed.py
+
       - name: Keep preview shortcut on signup/sign-in screen only
         run: python3 scripts/apply_auth_preview_scope.py
 
