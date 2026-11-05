@@ -58,7 +58,90 @@ private fun JarvisWebEmbed(
     onMenuAction: (String) -> Unit,
     onSos: () -> Unit
 ) {
-    val t = LocalAmity.current
+    val context = LocalContext.current
+    val webViewState = remember { mutableStateOf<WebView?>(null) }
+    val ioExecutor = remember { java.util.concurrent.Executors.newSingleThreadExecutor() }
+
+    fun sendResult(payload: org.json.JSONObject) {
+        val encoded = org.json.JSONObject.quote(payload.toString())
+        webViewState.value?.post {
+            webViewState.value?.evaluateJavascript(
+                "window.jarvisFileResult && window.jarvisFileResult(JSON.parse($encoded));",
+                null
+            )
+        }
+    }
+
+    fun deliverUri(uri: android.net.Uri?, kind: String) {
+        if (uri == null) {
+            sendResult(org.json.JSONObject()
+                .put("success", false).put("cancelled", true)
+                .put("message", "JARVIS: Selection was cancelled."))
+            return
+        }
+        val resolver = context.contentResolver
+        try {
+            resolver.takePersistableUriPermission(
+                uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } catch (_: SecurityException) {
+            // Some providers grant temporary access only.
+        }
+        if (kind == "folder") {
+            sendResult(org.json.JSONObject()
+                .put("success", true).put("type", "folder")
+                .put("uri", uri.toString())
+                .put("message", "JARVIS: Folder access is ready."))
+            return
+        }
+        ioExecutor.execute {
+            try {
+                val name = resolver.query(
+                    uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME),
+                    null, null, null
+                )?.use { cursor ->
+                    if (cursor.moveToFirst()) cursor.getString(0) else null
+                } ?: "Selected file"
+                val mime = resolver.getType(uri) ?: "application/octet-stream"
+                val bytes = resolver.openInputStream(uri)?.use { input ->
+                    val output = java.io.ByteArrayOutputStream()
+                    val buffer = ByteArray(8192)
+                    var total = 0
+                    while (true) {
+                        val count = input.read(buffer)
+                        if (count < 0) break
+                        total += count
+                        if (total > 10 * 1024 * 1024) {
+                            throw IllegalStateException("File exceeds the 10 MB inline transfer limit.")
+                        }
+                        output.write(buffer, 0, count)
+                    }
+                    output.toByteArray()
+                } ?: throw IllegalStateException("The selected file is no longer available.")
+                sendResult(org.json.JSONObject()
+                    .put("success", true).put("type", kind)
+                    .put("uri", uri.toString()).put("name", name)
+                    .put("mimeType", mime).put("size", bytes.size)
+                    .put("bytesBase64", android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP))
+                    .put("message", "JARVIS: $name is ready for processing."))
+            } catch (error: Exception) {
+                sendResult(org.json.JSONObject()
+                    .put("success", false).put("error", "FILE_READ_FAILED")
+                    .put("message", "JARVIS: Could not read the selected file. " + (error.localizedMessage ?: "Unknown error")))
+            }
+        }
+    }
+
+    val filePicker = rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri -> deliverUri(uri, "file") }
+    val audioPicker = rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri -> deliverUri(uri, "audio") }
+    val folderPicker = rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
+    ) { uri -> deliverUri(uri, "folder") }
+
     Card(
         Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -66,10 +149,10 @@ private fun JarvisWebEmbed(
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xAA00E5FF))
     ) {
         AndroidView(
-            modifier = Modifier.fillMaxWidth().height(690.dp)
-                .clip(RoundedCornerShape(14.dp)),
-            factory = { context ->
-                WebView(context).apply {
+            modifier = Modifier.fillMaxWidth().height(690.dp).clip(RoundedCornerShape(14.dp)),
+            factory = { viewContext ->
+                WebView(viewContext).apply {
+                    webViewState.value = this
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
                     settings.loadsImagesAutomatically = true
@@ -81,15 +164,42 @@ private fun JarvisWebEmbed(
                     addJavascriptInterface(object {
                         @JavascriptInterface
                         fun onFeatureSelected(name: String) {
-                            (context as? Activity)?.runOnUiThread {
-                                onMenuAction(name)
-                            }
+                            (viewContext as? Activity)?.runOnUiThread { onMenuAction(name) }
                         }
-
                         @JavascriptInterface
                         fun onEmergencyRequested() {
-                            (context as? Activity)?.runOnUiThread {
-                                onSos()
+                            (viewContext as? Activity)?.runOnUiThread { onSos() }
+                        }
+                        @JavascriptInterface
+                        fun pickFile() {
+                            (viewContext as? Activity)?.runOnUiThread { filePicker.launch(arrayOf("*/*")) }
+                        }
+                        @JavascriptInterface
+                        fun pickAudio() {
+                            (viewContext as? Activity)?.runOnUiThread { audioPicker.launch(arrayOf("audio/*")) }
+                        }
+                        @JavascriptInterface
+                        fun pickFolder() {
+                            (viewContext as? Activity)?.runOnUiThread { folderPicker.launch(null) }
+                        }
+                        @JavascriptInterface
+                        fun openAudio(uriString: String) {
+                            (viewContext as? Activity)?.runOnUiThread {
+                                try {
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                                        setDataAndType(android.net.Uri.parse(uriString), "audio/*")
+                                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }
+                                    viewContext.startActivity(android.content.Intent.createChooser(intent, "Open audio with"))
+                                } catch (_: android.content.ActivityNotFoundException) {
+                                    sendResult(org.json.JSONObject().put("success", false)
+                                        .put("error", "NO_AUDIO_PLAYER")
+                                        .put("message", "JARVIS: No compatible audio player is installed."))
+                                } catch (error: Exception) {
+                                    sendResult(org.json.JSONObject().put("success", false)
+                                        .put("error", "AUDIO_OPEN_FAILED")
+                                        .put("message", "JARVIS: Unable to open audio. " + (error.localizedMessage ?: "Unknown error")))
+                                }
                             }
                         }
                     }, "AmityNative")
@@ -97,9 +207,8 @@ private fun JarvisWebEmbed(
                 }
             },
             update = { view ->
-                if (view.url == null) {
-                    view.loadUrl("file:///android_asset/jarvis-earth-hud.html")
-                }
+                webViewState.value = view
+                if (view.url == null) view.loadUrl("file:///android_asset/jarvis-earth-hud.html")
             }
         )
     }
@@ -160,11 +269,11 @@ required_permissions = [
 manifest_text = manifest.read_text(encoding="utf-8")
 for permission_name in required_permissions:
     if permission_name not in manifest_text:
-        permission_xml = f'    <uses-permission android:name="{permission_name}" />\\n'
+        permission_xml = f'    <uses-permission android:name="{permission_name}" />\n'
         manifest_text = manifest_text.replace("<application", permission_xml + "    <application", 1)
 
 if "android.hardware.microphone" not in manifest_text:
-    feature_xml = '    <uses-feature android:name="android.hardware.microphone" android:required="false" />\\n'
+    feature_xml = '    <uses-feature android:name="android.hardware.microphone" android:required="false" />\n'
     manifest_text = manifest_text.replace("<application", feature_xml + "    <application", 1)
 
 # Do not re-enable legacy external storage on modern Android targets.
@@ -175,4 +284,4 @@ if "item { JarvisWebEmbed(onMenuAction, onSos) }" not in main.read_text(encoding
     raise SystemExit("JARVIS Earth HUD was not added to the dashboard")
 if not asset.is_file():
     raise SystemExit("JARVIS Earth HUD asset was not packaged")
-print("Embedded the interactive Earth HUD in native Compose and connected feature/emergency taps to existing dashboard callbacks.")
+print("Embedded the interactive Earth HUD with native SAF file/audio/folder pickers and native result callbacks.")
