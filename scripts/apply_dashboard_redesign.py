@@ -129,12 +129,18 @@ private fun JarvisStatus(online: Boolean) {
 @Composable
 private fun JarvisRadar(online: Boolean, children: Int, zones: Int) {
     val motion = rememberInfiniteTransition(label = "amityAiCore")
+    val processing = false // Set true only while a real AI request is running.
     val outerAngle by motion.animateFloat(0f, 360f,
-        infiniteRepeatable(tween(18000, easing = androidx.compose.animation.core.LinearEasing)), label = "outerOrbit")
+        infiniteRepeatable(tween(if (processing) 3000 else 18000, easing = androidx.compose.animation.core.LinearEasing)), label = "outerOrbit")
     val innerAngle by motion.animateFloat(360f, 0f,
-        infiniteRepeatable(tween(11000, easing = androidx.compose.animation.core.LinearEasing)), label = "innerOrbit")
-    val pulse by motion.animateFloat(0.45f, 1f,
-        infiniteRepeatable(tween(1450), repeatMode = androidx.compose.animation.core.RepeatMode.Reverse), label = "corePulse")
+        infiniteRepeatable(tween(if (processing) 1500 else 11000, easing = androidx.compose.animation.core.LinearEasing)), label = "innerOrbit")
+    val processing = false // Set true only while a real AI request is running.
+    val pulse by motion.animateFloat(if (processing) 0.72f else 0.45f, 1f,
+        infiniteRepeatable(tween(if (processing) 600 else 1450), repeatMode = androidx.compose.animation.core.RepeatMode.Reverse), label = "corePulse")
+    val outerDuration = if (processing) 3000 else 18000
+    val innerDuration = if (processing) 1500 else 11000
+    val blue = Color(0xFF0077FF)
+    val coreCyan = if (processing) blue else Color(0xFF00F0FF)
     Card(Modifier.padding(horizontal = 16.dp).fillMaxWidth(), shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xF0061422)),
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xAA38DDF5))) {
@@ -166,12 +172,17 @@ private fun JarvisRadar(online: Boolean, children: Int, zones: Int) {
                         style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx(),
                             pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 5.dp.toPx()))))
                     drawCircle(Color(0xAA9AF5FF), r * 0.60f, center, style = androidx.compose.ui.graphics.drawscope.Stroke(1.3.dp.toPx()))
-                    drawArc(cyan.copy(alpha = pulse), outerAngle, 82f, false,
-                        androidx.compose.ui.geometry.Offset(cx-r, cy-r), androidx.compose.ui.geometry.Size(r*2, r*2),
-                        style = androidx.compose.ui.graphics.drawscope.Stroke(3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
-                    drawArc(amber.copy(alpha = 0.9f), innerAngle, 48f, false,
-                        androidx.compose.ui.geometry.Offset(cx-r*0.83f, cy-r*0.83f), androidx.compose.ui.geometry.Size(r*1.66f, r*1.66f),
-                        style = androidx.compose.ui.graphics.drawscope.Stroke(2.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                    // Segmented orbit arcs: deliberate gaps between each scan segment.
+                    repeat(6) { segment ->
+                        drawArc(coreCyan.copy(alpha = pulse), outerAngle + segment * 60f, 34f, false,
+                            androidx.compose.ui.geometry.Offset(cx-r, cy-r), androidx.compose.ui.geometry.Size(r*2, r*2),
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                    }
+                    repeat(4) { segment ->
+                        drawArc(amber.copy(alpha = 0.9f), innerAngle + segment * 90f, 24f, false,
+                            androidx.compose.ui.geometry.Offset(cx-r*0.83f, cy-r*0.83f), androidx.compose.ui.geometry.Size(r*1.66f, r*1.66f),
+                            style = androidx.compose.ui.graphics.drawscope.Stroke(2.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                    }
                     for (i in 0 until 48) {
                         val a = Math.toRadians(i * 7.5)
                         val major = i % 4 == 0
@@ -189,11 +200,11 @@ private fun JarvisRadar(online: Boolean, children: Int, zones: Int) {
                         androidx.compose.ui.geometry.Offset(cx + kotlin.math.cos(a2).toFloat()*r*0.83f, cy + kotlin.math.sin(a2).toFloat()*r*0.83f))
                     drawCircle(Color(0x4439DDF5), r*0.48f, center)
                     drawCircle(brush = androidx.compose.ui.graphics.Brush.radialGradient(
-                        colors = listOf(Color(0xFFDAFFFF), Color(0xFF55E8FF), Color(0xFF087DA7), Color(0xFF041B31)),
+                        colors = if (processing) listOf(Color(0xFFE5F1FF), Color(0xFF0077FF), Color(0xFF064C9D), Color(0xFF041B31)) else listOf(Color(0xFFDAFFFF), Color(0xFF55E8FF), Color(0xFF087DA7), Color(0xFF041B31)),
                         center = center, radius = r*0.47f), radius = r*0.43f, center = center)
                     drawCircle(ice.copy(alpha = pulse), r*0.31f, center, style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
                     drawCircle(Color(0xFF061A2A), r*0.25f, center)
-                    drawCircle(Color(0xFF9AF5FF).copy(alpha = pulse), 4.dp.toPx(), center)
+                    drawCircle(coreCyan.copy(alpha = pulse), 4.dp.toPx(), center)
                     drawLine(Color(0x889AF5FF), androidx.compose.ui.geometry.Offset(cx-r*0.53f, cy),
                         androidx.compose.ui.geometry.Offset(cx+r*0.53f, cy), 0.8.dp.toPx())
                     drawLine(Color(0x889AF5FF), androidx.compose.ui.geometry.Offset(cx, cy-r*0.53f),
@@ -208,8 +219,10 @@ private fun JarvisRadar(online: Boolean, children: Int, zones: Int) {
                     Text(if (online) "READY" else "LOCAL", color = Color(0xFF9AF5FF), fontSize = 8.sp, fontWeight = FontWeight.Bold)
                 }
                 Column(Modifier.align(Alignment.CenterEnd), horizontalAlignment = Alignment.End) {
-                    Text("SECURITY", color = Color(0xFF6D9CB0), fontSize = 7.sp)
-                    Text("ACTIVE", color = Color(0xFF45E6B0), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                    Text("SECURITY SETUP", color = Color(0xFF6D9CB0), fontSize = 7.sp)
+                    Text(if (children > 0 && zones > 0) "CONFIGURED" else "SETUP NEEDED",
+                        color = if (children > 0 && zones > 0) Color(0xFF9AF5FF) else Color(0xFFFFA24A),
+                        fontSize = 8.sp, fontWeight = FontWeight.Bold)
                 }
                 Text("360° SCAN", Modifier.align(Alignment.BottomCenter).padding(bottom = 3.dp),
                     color = Color(0xFF6D9CB0), fontSize = 7.sp, letterSpacing = 1.4.sp)
@@ -226,8 +239,8 @@ private fun JarvisRadar(online: Boolean, children: Int, zones: Int) {
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text("CORE STATUS", color = Color(0xFF6D9CB0), fontSize = 7.sp)
-                    Text(if (online) "NOMINAL" else "STANDBY",
-                        color = if (online) Color(0xFF45E6B0) else Color(0xFFFFA24A),
+                    Text(if (processing) "PROCESSING" else if (online && children > 0 && zones > 0) "READY" else "STANDBY",
+                        color = if (processing) blue else if (online && children > 0 && zones > 0) Color(0xFF45E6B0) else Color(0xFFFFA24A),
                         fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
