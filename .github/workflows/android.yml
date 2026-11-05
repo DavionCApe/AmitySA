@@ -101,6 +101,8 @@ jobs:
           grep -Fq 'private fun FloatingAmityLogo' "$kotlin_file"
           grep -Fq 'painter = painterResource(R.drawable.amity_logo)' "$kotlin_file"
           grep -Fq 'FloatingAmityLogo(' "$kotlin_file"
+          grep -Fq 'contentScale = ContentScale.Crop' "$kotlin_file"
+          grep -Fq 'modifier = Modifier.fillMaxSize().alpha(0.24f)' "$kotlin_file"
           if grep -A45 -F 'private fun Header(' "$kotlin_file" | grep -Fq 'Image('; then
             echo "Header still contains a direct Image call; logo replacement failed."
             exit 1
