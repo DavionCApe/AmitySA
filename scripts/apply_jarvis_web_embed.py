@@ -143,12 +143,33 @@ if 'Text("EMERGENCY SERVICES"' not in source:
 main.write_text(source, encoding="utf-8")
 
 manifest = root / "app/src/main/AndroidManifest.xml"
-if manifest.is_file():
-    text = manifest.read_text(encoding="utf-8")
-    permission = '<uses-permission android:name="android.permission.INTERNET" />'
-    if "android.permission.INTERNET" not in text:
-        text = text.replace("<application", permission + "\n    <application", 1)
-        manifest.write_text(text, encoding="utf-8")
+if not manifest.is_file():
+    raise SystemExit("AndroidManifest.xml was not found")
+
+# Add only permissions used by the current network and audio features.
+# MANAGE_EXTERNAL_STORAGE is intentionally not granted by default: broad
+# storage access needs a separate user-approved Settings flow and a qualifying
+# core use case. Use the Storage Access Framework for user-selected documents.
+required_permissions = [
+    "android.permission.INTERNET",
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.ACCESS_WIFI_STATE",
+    "android.permission.RECORD_AUDIO",
+    "android.permission.MODIFY_AUDIO_SETTINGS",
+]
+manifest_text = manifest.read_text(encoding="utf-8")
+for permission_name in required_permissions:
+    if permission_name not in manifest_text:
+        permission_xml = f'    <uses-permission android:name="{permission_name}" />\\n'
+        manifest_text = manifest_text.replace("<application", permission_xml + "    <application", 1)
+
+if "android.hardware.microphone" not in manifest_text:
+    feature_xml = '    <uses-feature android:name="android.hardware.microphone" android:required="false" />\\n'
+    manifest_text = manifest_text.replace("<application", feature_xml + "    <application", 1)
+
+# Do not re-enable legacy external storage on modern Android targets.
+manifest_text = manifest_text.replace(' android:requestLegacyExternalStorage="true"', "")
+manifest.write_text(manifest_text, encoding="utf-8")
 
 if "item { JarvisWebEmbed(onMenuAction, onSos) }" not in main.read_text(encoding="utf-8"):
     raise SystemExit("JARVIS Earth HUD was not added to the dashboard")
