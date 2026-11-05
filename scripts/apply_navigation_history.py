@@ -126,10 +126,10 @@ if icon_count == 1 and time_count == 1:
     # The generated source currently leaves two orphan closing braces after
     # ActivityRow. Keep the function's own closing brace and discard only the
     # two extra top-level braces before the next composable.
-    scope_lines = activity_scope.rstrip("\\n").split("\\n")
+    scope_lines = activity_scope.rstrip("\n").split("\n")
     if len(scope_lines) >= 3 and all(line.strip() == "}" for line in scope_lines[-3:]):
         scope_lines = scope_lines[:-2]
-        activity_scope = "\\n".join(scope_lines) + "\\n"
+        activity_scope = "\n".join(scope_lines) + "\n"
     else:
         raise SystemExit("ActivityRow did not end with the expected redundant brace pattern")
     source = source[:scope_start] + activity_scope + source[scope_end:]
