@@ -121,22 +121,4 @@ print("---- HomeScreen declarations ----")
 for number, line in enumerate(main_lines, 1):
     if "HomeScreen(" in line or "Header(" in line:
         print(f"{number}: {line}")
-# Repair stale ActivityRow fields in the imported project model. The generated
-# Activity model exposes title, but not icon/time; use a stable visual marker
-# and neutral timestamp label instead of unresolved properties.
-main_activity = root / "app/src/main/java/com/amitysa/app/MainActivity.kt"
-source = main_activity.read_text(encoding="utf-8")
-icon_old = "Text(item.icon, fontSize = 22.sp)"
-time_old = "Text(item.time, color = t.inkSoft, fontSize = 12.sp)"
-icon_count = source.count(icon_old)
-time_count = source.count(time_old)
-source = source.replace(icon_old, 'Text("•", fontSize = 22.sp)', 1)
-source = source.replace(time_old, 'Text("Activity recorded", color = t.inkSoft, fontSize = 12.sp)', 1)
-if icon_count != 1 or time_count != 1:
-    raise SystemExit(
-        f"ActivityRow compile repair expected one icon/time field, found icon={icon_count}, time={time_count}"
-    )
-main_activity.write_text(source, encoding="utf-8")
-print("Repaired ActivityRow to use model-supported fields and a stable activity label.")
-
 print("Applied MapType, menu callback, and offline polygon compile repairs.")
