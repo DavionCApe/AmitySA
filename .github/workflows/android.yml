@@ -91,6 +91,9 @@ jobs:
       - name: Apply the replacement logo after all home-screen design changes
         run: python3 scripts/apply_floating_logo.py
 
+      - name: Apply advanced JARVIS holographic navigation
+        run: python3 scripts/apply_jarvis_advanced_navigation.py
+
       - name: Verify the final home-screen logo and resource
         shell: bash
         run: |
