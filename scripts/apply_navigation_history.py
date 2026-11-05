@@ -103,12 +103,12 @@ if time_index < 0:
     raise SystemExit("ActivityRow time reference was not found after final UI generation")
 
 # Use the nearest preceding composable boundary and the next one as the scope.
-scope_start = source.rfind("\\n@Composable", 0, time_index)
+scope_start = source.rfind("\n@Composable", 0, time_index)
 if scope_start < 0:
-    scope_start = source.rfind("\\nprivate fun ", 0, time_index)
+    scope_start = source.rfind("\nprivate fun ", 0, time_index)
 if scope_start < 0:
-    scope_start = source.rfind("\\nfun ", 0, time_index)
-scope_end = source.find("\\n@Composable", time_index + len(time_old))
+    scope_start = source.rfind("\nfun ", 0, time_index)
+scope_end = source.find("\n@Composable", time_index + len(time_old))
 if scope_end < 0:
     scope_end = len(source)
 if scope_start < 0 or scope_end <= time_index:
