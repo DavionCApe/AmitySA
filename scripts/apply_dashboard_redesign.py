@@ -128,74 +128,112 @@ private fun JarvisStatus(online: Boolean) {
 
 @Composable
 private fun JarvisRadar(online: Boolean, children: Int, zones: Int) {
-    val t = LocalAmity.current
-    val motion = rememberInfiniteTransition(label = "dashboardRadar")
-    val angle by motion.animateFloat(0f, 360f,
-        infiniteRepeatable(tween(9500, easing = androidx.compose.animation.core.LinearEasing)),
-        label = "radarSweep")
-    val pulse by motion.animateFloat(0.35f, 0.95f,
-        infiniteRepeatable(tween(1300), repeatMode = androidx.compose.animation.core.RepeatMode.Reverse),
-        label = "radarPulse")
-    Card(Modifier.padding(horizontal = 20.dp).fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xE6081A29)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x8846CFEA))) {
-        Box(Modifier.fillMaxWidth().height(218.dp).padding(12.dp)) {
-            Canvas(Modifier.fillMaxSize()) {
-                val cx = size.width / 2f
-                val cy = size.height * 0.53f
-                val r = size.height * 0.42f
-                val cyan = Color(0xAA36D8F2)
-                listOf(1f, 0.7f, 0.4f).forEach { f ->
-                    drawCircle(cyan.copy(alpha = 0.62f * f), r * f,
-                        androidx.compose.ui.geometry.Offset(cx, cy),
-                        style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
+    val motion = rememberInfiniteTransition(label = "amityAiCore")
+    val outerAngle by motion.animateFloat(0f, 360f,
+        infiniteRepeatable(tween(18000, easing = androidx.compose.animation.core.LinearEasing)), label = "outerOrbit")
+    val innerAngle by motion.animateFloat(360f, 0f,
+        infiniteRepeatable(tween(11000, easing = androidx.compose.animation.core.LinearEasing)), label = "innerOrbit")
+    val pulse by motion.animateFloat(0.45f, 1f,
+        infiniteRepeatable(tween(1450), repeatMode = androidx.compose.animation.core.RepeatMode.Reverse), label = "corePulse")
+    Card(Modifier.padding(horizontal = 16.dp).fillMaxWidth(), shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xF0061422)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xAA38DDF5))) {
+        Column(Modifier.fillMaxWidth().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("AMITY // INTELLIGENCE CORE", color = Color(0xFF9AF5FF), fontSize = 9.sp,
+                        fontWeight = FontWeight.ExtraBold, letterSpacing = 1.7.sp)
+                    Text("AUTONOMOUS FAMILY SAFETY SYSTEM", color = Color(0xFF668FA4), fontSize = 7.sp, letterSpacing = 1.1.sp)
                 }
-                drawLine(cyan.copy(alpha = 0.35f),
-                    androidx.compose.ui.geometry.Offset(cx-r, cy),
-                    androidx.compose.ui.geometry.Offset(cx+r, cy), 1.dp.toPx())
-                drawLine(cyan.copy(alpha = 0.35f),
-                    androidx.compose.ui.geometry.Offset(cx, cy-r),
-                    androidx.compose.ui.geometry.Offset(cx, cy+r), 1.dp.toPx())
-                val a = Math.toRadians(angle.toDouble())
-                val ex = cx + kotlin.math.cos(a).toFloat() * r
-                val ey = cy + kotlin.math.sin(a).toFloat() * r
-                drawLine(Color(0xDD9AF5FF).copy(alpha = pulse),
-                    androidx.compose.ui.geometry.Offset(cx, cy),
-                    androidx.compose.ui.geometry.Offset(ex, ey), 2.dp.toPx())
-                drawCircle(Color(0xFFFFA24A).copy(alpha = pulse), 4.dp.toPx(),
-                    androidx.compose.ui.geometry.Offset(ex, ey))
-                drawCircle(Color(0xFF9AF5FF), 3.dp.toPx(),
-                    androidx.compose.ui.geometry.Offset(cx, cy))
-                for (i in 0..23) {
-                    val tick = Math.toRadians(i * 15.0)
-                    drawLine(cyan,
-                        androidx.compose.ui.geometry.Offset(cx + kotlin.math.cos(tick).toFloat()*r*0.91f,
-                            cy + kotlin.math.sin(tick).toFloat()*r*0.91f),
-                        androidx.compose.ui.geometry.Offset(cx + kotlin.math.cos(tick).toFloat()*r,
-                            cy + kotlin.math.sin(tick).toFloat()*r), 1.dp.toPx())
+                Text("●  ${if (online) "ONLINE" else "LOCAL"}", color = if (online) Color(0xFF45E6B0) else Color(0xFFFFA24A),
+                    fontSize = 8.sp, fontWeight = FontWeight.ExtraBold)
+            }
+            Box(Modifier.fillMaxWidth().height(258.dp), contentAlignment = Alignment.Center) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val cx = size.width / 2f
+                    val cy = size.height / 2f
+                    val r = size.minDimension * 0.405f
+                    val center = androidx.compose.ui.geometry.Offset(cx, cy)
+                    val cyan = Color(0xFF39DDF5)
+                    val ice = Color(0xFFB8F8FF)
+                    val amber = Color(0xFFFFA24A)
+                    drawCircle(brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                        colors = listOf(Color(0x6639DDF5).copy(alpha = pulse), Color(0x2239DDF5), Color.Transparent),
+                        center = center, radius = r * 1.45f), radius = r * 1.45f, center = center)
+                    drawCircle(Color(0x8839DDF5), r, center, style = androidx.compose.ui.graphics.drawscope.Stroke(1.1.dp.toPx()))
+                    drawCircle(Color(0x6639DDF5), r * 0.83f, center,
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx(),
+                            pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 5.dp.toPx()))))
+                    drawCircle(Color(0xAA9AF5FF), r * 0.60f, center, style = androidx.compose.ui.graphics.drawscope.Stroke(1.3.dp.toPx()))
+                    drawArc(cyan.copy(alpha = pulse), outerAngle, 82f, false,
+                        androidx.compose.ui.geometry.Offset(cx-r, cy-r), androidx.compose.ui.geometry.Size(r*2, r*2),
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                    drawArc(amber.copy(alpha = 0.9f), innerAngle, 48f, false,
+                        androidx.compose.ui.geometry.Offset(cx-r*0.83f, cy-r*0.83f), androidx.compose.ui.geometry.Size(r*1.66f, r*1.66f),
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(2.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                    for (i in 0 until 48) {
+                        val a = Math.toRadians(i * 7.5)
+                        val major = i % 4 == 0
+                        val inner = if (major) r * 0.88f else r * 0.93f
+                        drawLine(if (major) ice.copy(alpha = 0.8f) else cyan.copy(alpha = 0.38f),
+                            androidx.compose.ui.geometry.Offset(cx + kotlin.math.cos(a).toFloat()*inner, cy + kotlin.math.sin(a).toFloat()*inner),
+                            androidx.compose.ui.geometry.Offset(cx + kotlin.math.cos(a).toFloat()*r*0.99f, cy + kotlin.math.sin(a).toFloat()*r*0.99f),
+                            if (major) 1.4.dp.toPx() else 0.7.dp.toPx())
+                    }
+                    val a1 = Math.toRadians(outerAngle.toDouble())
+                    val a2 = Math.toRadians(innerAngle.toDouble())
+                    drawCircle(amber.copy(alpha = pulse), 5.dp.toPx(),
+                        androidx.compose.ui.geometry.Offset(cx + kotlin.math.cos(a1).toFloat()*r, cy + kotlin.math.sin(a1).toFloat()*r))
+                    drawCircle(ice, 3.5.dp.toPx(),
+                        androidx.compose.ui.geometry.Offset(cx + kotlin.math.cos(a2).toFloat()*r*0.83f, cy + kotlin.math.sin(a2).toFloat()*r*0.83f))
+                    drawCircle(Color(0x4439DDF5), r*0.48f, center)
+                    drawCircle(brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                        colors = listOf(Color(0xFFDAFFFF), Color(0xFF55E8FF), Color(0xFF087DA7), Color(0xFF041B31)),
+                        center = center, radius = r*0.47f), radius = r*0.43f, center = center)
+                    drawCircle(ice.copy(alpha = pulse), r*0.31f, center, style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
+                    drawCircle(Color(0xFF061A2A), r*0.25f, center)
+                    drawCircle(Color(0xFF9AF5FF).copy(alpha = pulse), 4.dp.toPx(), center)
+                    drawLine(Color(0x889AF5FF), androidx.compose.ui.geometry.Offset(cx-r*0.53f, cy),
+                        androidx.compose.ui.geometry.Offset(cx+r*0.53f, cy), 0.8.dp.toPx())
+                    drawLine(Color(0x889AF5FF), androidx.compose.ui.geometry.Offset(cx, cy-r*0.53f),
+                        androidx.compose.ui.geometry.Offset(cx, cy+r*0.53f), 0.8.dp.toPx())
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("A", color = Color(0xFFE4FFFF), fontSize = 32.sp, fontWeight = FontWeight.Black)
+                    Text("CORE", color = Color(0xFF9AF5FF), fontSize = 8.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 2.sp)
+                }
+                Column(Modifier.align(Alignment.CenterStart)) {
+                    Text("LINK", color = Color(0xFF6D9CB0), fontSize = 7.sp)
+                    Text(if (online) "READY" else "LOCAL", color = Color(0xFF9AF5FF), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                }
+                Column(Modifier.align(Alignment.CenterEnd), horizontalAlignment = Alignment.End) {
+                    Text("SECURITY", color = Color(0xFF6D9CB0), fontSize = 7.sp)
+                    Text("ACTIVE", color = Color(0xFF45E6B0), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                }
+                Text("360° SCAN", Modifier.align(Alignment.BottomCenter).padding(bottom = 3.dp),
+                    color = Color(0xFF6D9CB0), fontSize = 7.sp, letterSpacing = 1.4.sp)
+            }
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color(0xAA0A2638))
+                .padding(horizontal = 10.dp, vertical = 9.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("FAMILY UNITS", color = Color(0xFF6D9CB0), fontSize = 7.sp)
+                    Text(children.toString().padStart(2, '0'), color = Color(0xFF9AF5FF), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                }
+                Column {
+                    Text("SAFE ZONES", color = Color(0xFF6D9CB0), fontSize = 7.sp)
+                    Text(zones.toString().padStart(2, '0'), color = Color(0xFF9AF5FF), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("CORE STATUS", color = Color(0xFF6D9CB0), fontSize = 7.sp)
+                    Text(if (online) "NOMINAL" else "STANDBY",
+                        color = if (online) Color(0xFF45E6B0) else Color(0xFFFFA24A),
+                        fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
-            Column(Modifier.align(Alignment.TopStart)) {
-                Text("FAMILY OVERVIEW", color = t.primary, fontSize = 9.sp,
-                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.3.sp)
-                Text("SCANNER // ${if (online) "LINK READY" else "LOCAL STANDBY"}",
-                    color = t.inkSoft, fontSize = 8.sp)
-            }
-            Column(Modifier.align(Alignment.BottomStart)) {
-                Text("PROFILES  $children", color = t.ink, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                Text("SAFE ZONES  $zones", color = t.inkSoft, fontSize = 8.sp)
-            }
-            Text("AMITY // HUD", Modifier.align(Alignment.TopEnd), color = Color(0xFFFFA24A),
-                fontSize = 8.sp, fontWeight = FontWeight.Bold)
-            Text(if (online) "NETWORK NOMINAL" else "NETWORK DISCONNECTED",
-                Modifier.align(Alignment.BottomEnd),
-                color = if (online) Color(0xFF45E6B0) else Color(0xFFFFA24A),
-                fontSize = 8.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
-
 @Composable
 private fun JarvisMetric(label: String, value: String, detail: String,
     modifier: Modifier = Modifier, alert: Boolean = false) {
