@@ -253,6 +253,12 @@ if 'Text("EMERGENCY SERVICES"' not in source:
     source = source.replace(dock_marker, dock + "\n" + dock_marker, 1)
 main.write_text(source, encoding="utf-8")
 
+# Emit the exact generated Kotlin around the known compiler diagnostics.
+generated_lines = source.splitlines()
+print("---- Generated MainActivity.kt lines 1645-1680 ----")
+for line_number in range(1645, min(1680, len(generated_lines)) + 1):
+    print(f"{line_number}: {generated_lines[line_number - 1]}")
+
 manifest = root / "app/src/main/AndroidManifest.xml"
 if not manifest.is_file():
     raise SystemExit("AndroidManifest.xml was not found")
