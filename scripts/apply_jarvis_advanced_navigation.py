@@ -52,7 +52,15 @@ private fun JarvisOrbitalCommandRing() {
                     androidx.compose.ui.geometry.Offset(cx+kotlin.math.cos(a).toFloat()*r*1.12f, cy+kotlin.math.sin(a).toFloat()*r*1.12f),
                     androidx.compose.ui.geometry.Offset(cx+kotlin.math.cos(a).toFloat()*r*1.30f, cy+kotlin.math.sin(a).toFloat()*r*1.30f), 1.dp.toPx())
             }
-            drawCircle(Color(0xFF9AF5FF).copy(alpha = pulse), 3.dp.toPx(), androidx.compose.ui.geometry.Offset(cx, cy))
+            // Animated holographic Earth core: sphere, latitude/longitude bands and rotating meridians.
+            drawCircle(Color(0xFF062B49).copy(alpha = 0.96f), 15.dp.toPx(), androidx.compose.ui.geometry.Offset(cx, cy))
+            drawCircle(Color(0xFF63E8FF).copy(alpha = 0.92f), 15.dp.toPx(), androidx.compose.ui.geometry.Offset(cx, cy), style = androidx.compose.ui.graphics.drawscope.Stroke(1.2.dp.toPx()))
+            rotate(rotation * 1.35f, androidx.compose.ui.geometry.Offset(cx, cy)) {
+                drawOval(Color(0xFF75EFFF).copy(alpha = 0.78f), topLeft = androidx.compose.ui.geometry.Offset(cx - 6.dp.toPx(), cy - 14.dp.toPx()), size = androidx.compose.ui.geometry.Size(12.dp.toPx(), 28.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(0.9.dp.toPx()))
+                drawOval(Color(0xFF75EFFF).copy(alpha = 0.52f), topLeft = androidx.compose.ui.geometry.Offset(cx - 14.dp.toPx(), cy - 5.dp.toPx()), size = androidx.compose.ui.geometry.Size(28.dp.toPx(), 10.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(0.8.dp.toPx()))
+                drawArc(Color(0xFF9AF5FF).copy(alpha = 0.72f), 205f, 130f, false, topLeft = androidx.compose.ui.geometry.Offset(cx - 11.dp.toPx(), cy - 11.dp.toPx()), size = androidx.compose.ui.geometry.Size(22.dp.toPx(), 22.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
+            }
+            drawCircle(Color(0xFF9AF5FF).copy(alpha = pulse), 2.dp.toPx(), androidx.compose.ui.geometry.Offset(cx, cy))
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("J.A.R.V.I.S", color = Color(0xFFE7FAFF), fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.8.sp)
@@ -65,7 +73,7 @@ private fun JarvisOrbitalCommandRing() {
     s = s.replace(marker, orbital + marker, 1)
 
 dropdown = '            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.heightIn(max = 520.dp).background(t.card)) {\n'
-if "JarvisOrbitalCommandRing()" not in s:
+if "                JarvisOrbitalCommandRing()\\n" not in s:
     if dropdown not in s:
         raise SystemExit("Could not locate active-page dropdown")
     s = s.replace(dropdown, dropdown + "                JarvisOrbitalCommandRing()\n", 1)
