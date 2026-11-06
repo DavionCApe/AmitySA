@@ -240,9 +240,9 @@ if needle not in page:
     raise SystemExit("Could not find JARVIS file result callback")
 chunk_handler = """window.jarvisFileResultChunk=(id,index,total,chunk)=>{const key='jarvis-transfer-'+id;let transfer=window[key];if(!transfer){transfer=window[key]={parts:new Array(total),received:0,total};}if(!transfer.parts[index]){transfer.parts[index]=chunk;transfer.received++;}if(transfer.received===transfer.total){const result=window.jarvisLastFileResult;if(result){result.bytesBase64=transfer.parts.join('');window.jarvisFileBytesReady?.(result);}delete window[key];}};window.jarvisLastFileResult=null;"""
 page = page.replace(needle, chunk_handler + needle)
-page = page.replace("window.jarvisFileResult=function(r){if(!r);",
-                    "window.jarvisFileResult=function(r){window.jarvisLastFileResult=r;if(!r);")
-page = page.replace("};\\\\nwindow.jarvisFileResult", "};window.jarvisFileResult")
+page = page.replace("window.jarvisFileResult=function(r){if(!r){",
+                    "window.jarvisFileResult=function(r){window.jarvisLastFileResult=r;if(!r){")
+page = page.replace("};\\nwindow.jarvisFileResult", "};window.jarvisFileResult")
 html.write_text(page, encoding="utf-8")
 
 if "window.jarvisFileResultChunk" not in page or 'src="three.min.js"' not in page:
