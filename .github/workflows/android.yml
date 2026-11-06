@@ -112,6 +112,26 @@ jobs:
         with:
           node-version: 20
 
+      - name: Verify offline JARVIS assets and JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s app/src/main/assets/three.min.js
+          grep -Fq 'src="three.min.js"' app/src/main/assets/jarvis-earth-hud.html
+          grep -Fq 'window.jarvisFileResultChunk' app/src/main/assets/jarvis-earth-hud.html
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          page = Path("app/src/main/assets/jarvis-earth-hud.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script>(.*?)</script>", page, flags=re.S)
+          if len(scripts) != 1:
+              raise SystemExit(f"Expected one inline HUD script, found {len(scripts)}")
+          Path("/tmp/jarvis-earth-hud.js").write_text(scripts[0], encoding="utf-8")
+          PY
+          node --check /tmp/jarvis-earth-hud.js
+          grep -Fq 'ThreadPoolExecutor' app/src/main/java/com/amitysa/app/MainActivity.kt
+          grep -Fq 'FILE_READ_TIMEOUT' app/src/main/java/com/amitysa/app/MainActivity.kt
+
       - name: Test optional backend
         run: node server/smoke-test.js
 
