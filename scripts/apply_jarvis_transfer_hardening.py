@@ -234,7 +234,7 @@ chunk_handler = """window.jarvisFileResultChunk=(id,index,total,chunk)=>{const k
 page = page.replace(needle, chunk_handler + needle)
 page = page.replace("window.jarvisFileResult=function(r){if(!r){",
                     "window.jarvisFileResult=function(r){window.jarvisLastFileResult=r;if(!r){")
-page = page.replace("};\\nwindow.jarvisFileResult", "};window.jarvisFileResult")
+page = page.replace(");\\nwindow.jarvisFileResultChunk", ");window.jarvisFileResultChunk")
 html.write_text(page, encoding="utf-8")
 
 if "window.jarvisFileResultChunk" not in page or 'src="three.min.js"' not in page:
