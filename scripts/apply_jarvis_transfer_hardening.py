@@ -230,7 +230,7 @@ page = html.read_text(encoding="utf-8")
 needle = "window.jarvisFileResult=function(r){"
 if needle not in page:
     raise SystemExit("Could not find JARVIS file result callback")
-chunk_handler = """window.jarvisFileResultChunk=(id,index,total,chunk)=>{const key='jarvis-transfer-'+id;let transfer=window[key];if(!transfer){transfer=window[key]={parts:new Array(total),received:0,total};}if(!transfer.parts[index]){transfer.parts[index]=chunk;transfer.received++;}if(transfer.received===transfer.total){const result=window.jarvisLastFileResult;if(result){result.bytesBase64=transfer.parts.join('');window.jarvisFileBytesReady?.(result);}delete window[key];}};window.jarvisLastFileResult=null;"""
+chunk_handler = """window.jarvisFileResultChunk=(id,index,total,chunk)=>{const key='jarvis-transfer-'+id;let transfer=window[key];if(!transfer){transfer=window[key]={parts:new Array(total),received:0,total};}if(!transfer.parts[index]){transfer.parts[index]=chunk;transfer.received++;}if(transfer.received===transfer.total){const result=window.jarvisLastFileResult;if(result){result.bytesBase64=transfer.parts.join('');window.jarvisFileBytesReady?.(result);}delete window[key];}};window.jarvisLastFileResult=null;window.jarvisFileBytesReady=(r)=>{drawer(r.name||'FILE','JARVIS: File data transfer completed.');toast('FILE DATA RECEIVED');};"""
 page = page.replace(needle, chunk_handler + needle)
 page = page.replace("window.jarvisFileResult=function(r){if(!r){",
                     "window.jarvisFileResult=function(r){window.jarvisLastFileResult=r;if(!r){")
