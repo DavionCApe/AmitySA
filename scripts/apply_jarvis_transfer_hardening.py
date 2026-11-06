@@ -84,20 +84,12 @@ private fun JarvisWebEmbed(
             return
         }
         if (kind == "audio") {
-            try {
-                val name = resolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME),
-                    null, null, null)?.use { cursor -> if (cursor.moveToFirst()) cursor.getString(0) else null }
-                    ?: "Selected audio"
-                val mime = resolver.getType(uri) ?: "audio/*"
-                val size = resolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: -1L
-                sendResult(org.json.JSONObject().put("success", true).put("type", "audio")
-                    .put("uri", uri.toString()).put("name", name).put("mimeType", mime)
-                    .put("size", size).put("message", "JARVIS: $name is ready to open in your audio player."))
-            } catch (error: Exception) {
-                sendResult(org.json.JSONObject().put("success", false).put("error", "AUDIO_METADATA_FAILED")
-                    .put("uri", uri.toString()).put("message", "JARVIS: Audio details could not be read. " +
-                        (error.localizedMessage ?: "Unknown error")))
-            }
+            // Do not query or stream the provider on the UI thread. The original
+            // SAF URI is enough to expose the external-player action for any size.
+            val name = uri.lastPathSegment ?: "Selected audio"
+            sendResult(org.json.JSONObject().put("success", true).put("type", "audio")
+                .put("uri", uri.toString()).put("name", name).put("mimeType", "audio/*")
+                .put("size", -1).put("message", "JARVIS: Audio is ready to open in your audio player."))
             return
         }
 
