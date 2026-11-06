@@ -72,8 +72,19 @@ jobs:
 
       - name: Redesign the AmitySA home dashboard as a JARVIS command centre
         run: python3 scripts/apply_dashboard_redesign.py
+      - name: Fetch pinned Three.js runtime for offline HUD
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p web/vendor
+          curl --fail --location --retry 3 --retry-delay 2 \
+            https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js \
+            --output web/vendor/three.min.js
+          test "$(wc -c < web/vendor/three.min.js)" -gt 10000
       - name: Embed the JARVIS Multi-AI web HUD inside the native Android dashboard
         run: python3 scripts/apply_jarvis_web_embed.py
+      - name: Harden JARVIS file transfer and package offline HUD assets
+        run: python3 scripts/apply_jarvis_transfer_hardening.py
 
       - name: Keep preview shortcut on signup/sign-in screen only
         run: python3 scripts/apply_auth_preview_scope.py
