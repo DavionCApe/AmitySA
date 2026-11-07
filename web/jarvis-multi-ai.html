@@ -32,8 +32,8 @@
 <div id="app">
 <header class="panel header"><div class="brand"><span class="dot"></span><span>AI NODE // ONLINE</span></div><div class="header-right"><span>NETWORK <strong>STABLE</strong></span><span id="clock">--:--:--</span></div></header>
 <aside class="panel left">
-<section class="module"><div class="module-title">ENVIRONMENT SHORTCUTS</div><button class="nav active" data-target="VELVE">VELVE</button><button class="nav" data-target="TERRA NEXUS">TERRA NEXUS</button><button class="nav" data-target="VISION INTELLIGENCE">VISION INTELLIGENCE</button></section>
-<section class="module"><div class="module-title">PROCESS STREAM: SECURE</div><div class="log" id="log"><span>Neural interface initialized</span><span>Vector matrix online</span><span>Core synchronization complete</span><span>Awaiting command input</span></div></section>
+<section class="module"><div class="module-title">ENVIRONMENT SHORTCUTS</div><button class="nav active" data-target="Family">FAMILY</button><button class="nav" data-target="Safe Zones">SAFE ZONES</button><button class="nav" data-target="Live Map">LIVE MAP</button></section>
+<section class="module"><div class="module-title">PROCESS STREAM: SECURE</div><div class="log" id="log"><span>Neural interface initialized</span><span>Vector matrix online</span><span>Core synchronization complete</span><span>Awaiting command input</span></div><button class="nav" id="pick-file">OPEN FILE</button><button class="nav" id="pick-audio">OPEN AUDIO</button><button class="nav" id="pick-folder">OPEN FOLDER</button></section>
 </aside>
 <main class="panel center"><div id="canvas-container"></div><div class="core-label"><div class="eyebrow">ADVANCED MULTI-AI INTERFACE</div><h1>J.A.R.V.I.S.</h1><div class="sub">NEURAL SYSTEM // 01</div></div><div class="core-status" id="status">STANDBY</div><div class="telemetry">CORE TEMP: <span id="temp">32.4</span>°C<br>MATRIX: SYNCHRONIZED<br>NODE CLUSTER: ACTIVE</div><div class="telemetry r">SECURITY: STATUS UNKNOWN<br>UPLINK: DEMO MODE<br>BUILD: 01.00.26</div></main>
 <aside class="panel right">
@@ -52,7 +52,11 @@ function send(){const s=input.value.trim();if(!s){addLog('Awaiting valid command
 document.querySelector('#send').onclick=send;input.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
 document.querySelector('#wake').onclick=e=>{wake=!wake;e.currentTarget.classList.toggle('enabled',wake);e.currentTarget.textContent=wake?'WAKE WORD ENABLED':'ENABLE WAKE WORD';addLog('Wake-word UI '+(wake?'enabled':'disabled')+' (demo only)')};
 document.querySelector('#voice').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){addLog('Speech recognition unavailable in this browser',true);return}const r=new SR();r.lang='en-ZA';r.onresult=e=>{input.value=e.results[0][0].transcript;send()};r.onerror=()=>addLog('Voice input error',true);addLog('Voice input listening');r.start()};
-document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');addLog('Environment selected: '+b.dataset.target)});
+document.querySelectorAll('.nav[data-target]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');addLog('Opening AmitySA module: '+b.dataset.target);if(window.AmityNative&&window.AmityNative.onFeatureSelected)window.AmityNative.onFeatureSelected(b.dataset.target)});
+document.querySelector('#pick-file').onclick=()=>window.AmityNative?.pickFile?.();
+document.querySelector('#pick-audio').onclick=()=>window.AmityNative?.pickAudio?.();
+document.querySelector('#pick-folder').onclick=()=>window.AmityNative?.pickFolder?.();
+window.jarvisFileResult=function(result){addLog(result?.message||'Native file operation completed',!result?.success);if(result?.success&&result?.name)addLog('Selected: '+result.name)};
 function clock(){document.querySelector('#clock').textContent=new Date().toLocaleTimeString('en-ZA',{hour12:false})}clock();setInterval(clock,1000);
 
 /* Three.js neural point network */
