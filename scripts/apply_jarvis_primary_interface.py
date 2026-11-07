@@ -4,12 +4,12 @@ main = Path("app/src/main/java/com/amitysa/app/MainActivity.kt")
 if not main.is_file():
     raise SystemExit("AmitySA MainActivity.kt was not found")
 s = main.read_text(encoding="utf-8")
-start = s.find("@Composable\\nprivate fun JarvisDashboard(")
+start = s.find("@Composable\nprivate fun JarvisDashboard()
 if start < 0:
     raise SystemExit("Could not locate JarvisDashboard composable")
 # Find the next top-level composable after JarvisDashboard; replace the entire
 # dashboard implementation so the old native dashboard is no longer rendered.
-end = s.find("\\n@Composable\\nprivate fun JarvisStatus(", start)
+end = s.find("\n@Composable\nprivate fun JarvisStatus(, start)
 if end < 0:
     raise SystemExit("Could not locate the end of JarvisDashboard")
 replacement = '''@Composable
