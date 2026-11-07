@@ -2,16 +2,16 @@ from pathlib import Path
 import re
 
 root = Path.cwd()
-html_source = root / "web/jarvis-earth-hud.html"
+html_source = root / "web/jarvis-multi-ai.html"
 if not html_source.is_file():
-    raise SystemExit("web/jarvis-earth-hud.html is missing")
+    raise SystemExit("web/jarvis-multi-ai.html is missing")
 main = root / "app/src/main/java/com/amitysa/app/MainActivity.kt"
 if not main.is_file():
     raise SystemExit("AmitySA MainActivity.kt was not found")
 
 assets = root / "app/src/main/assets"
 assets.mkdir(parents=True, exist_ok=True)
-asset = assets / "jarvis-earth-hud.html"
+asset = assets / "jarvis-multi-ai.html"
 asset.write_text(html_source.read_text(encoding="utf-8"), encoding="utf-8")
 
 source = main.read_text(encoding="utf-8")
@@ -144,76 +144,53 @@ private fun JarvisWebEmbed(
         androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
     ) { uri -> deliverUri(uri, "folder") }
 
-    Card(
-        Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xF0061422)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xAA00E5FF))
-    ) {
-        AndroidView(
-            modifier = Modifier.fillMaxWidth().height(690.dp).clip(RoundedCornerShape(14.dp)),
-            factory = { viewContext ->
-                WebView(viewContext).apply {
-                    webViewState.value = this
-                    settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true
-                    settings.loadsImagesAutomatically = true
-                    settings.allowFileAccess = true
-                    settings.allowContentAccess = false
-                    settings.allowFileAccessFromFileURLs = false
-                    settings.allowUniversalAccessFromFileURLs = false
-                    webViewClient = WebViewClient()
-                    addJavascriptInterface(object {
-                        @JavascriptInterface
-                        fun onFeatureSelected(name: String) {
-                            (viewContext as? Activity)?.runOnUiThread { onMenuAction(name) }
-                        }
-                        @JavascriptInterface
-                        fun onEmergencyRequested() {
-                            (viewContext as? Activity)?.runOnUiThread { onSos() }
-                        }
-                        @JavascriptInterface
-                        fun pickFile() {
-                            (viewContext as? Activity)?.runOnUiThread { filePicker.launch(arrayOf("*/*")) }
-                        }
-                        @JavascriptInterface
-                        fun pickAudio() {
-                            (viewContext as? Activity)?.runOnUiThread { audioPicker.launch(arrayOf("audio/*")) }
-                        }
-                        @JavascriptInterface
-                        fun pickFolder() {
-                            (viewContext as? Activity)?.runOnUiThread { folderPicker.launch(null) }
-                        }
-                        @JavascriptInterface
-                        fun openAudio(uriString: String) {
-                            (viewContext as? Activity)?.runOnUiThread {
-                                try {
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                                        setDataAndType(android.net.Uri.parse(uriString), "audio/*")
-                                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                    }
-                                    viewContext.startActivity(android.content.Intent.createChooser(intent, "Open audio with"))
-                                } catch (_: android.content.ActivityNotFoundException) {
-                                    sendResult(org.json.JSONObject().put("success", false)
-                                        .put("error", "NO_AUDIO_PLAYER")
-                                        .put("message", "JARVIS: No compatible audio player is installed."))
-                                } catch (error: Exception) {
-                                    sendResult(org.json.JSONObject().put("success", false)
-                                        .put("error", "AUDIO_OPEN_FAILED")
-                                        .put("message", "JARVIS: Unable to open audio. " + (error.localizedMessage ?: "Unknown error")))
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { viewContext ->
+            WebView(viewContext).apply {
+                webViewState.value = this
+                setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                settings.loadsImagesAutomatically = true
+                settings.allowFileAccess = true
+                settings.allowContentAccess = true
+                settings.allowFileAccessFromFileURLs = false
+                settings.allowUniversalAccessFromFileURLs = false
+                settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+                webViewClient = WebViewClient()
+                addJavascriptInterface(object {
+                    @JavascriptInterface fun onFeatureSelected(name: String) {
+                        (viewContext as? Activity)?.runOnUiThread { onMenuAction(name) }
+                    }
+                    @JavascriptInterface fun onEmergencyRequested() {
+                        (viewContext as? Activity)?.runOnUiThread { onSos() }
+                    }
+                    @JavascriptInterface fun pickFile() { (viewContext as? Activity)?.runOnUiThread { filePicker.launch(arrayOf("*/*")) } }
+                    @JavascriptInterface fun pickAudio() { (viewContext as? Activity)?.runOnUiThread { audioPicker.launch(arrayOf("audio/*")) } }
+                    @JavascriptInterface fun pickFolder() { (viewContext as? Activity)?.runOnUiThread { folderPicker.launch(null) } }
+                    @JavascriptInterface fun openAudio(uriString: String) {
+                        (viewContext as? Activity)?.runOnUiThread {
+                            try {
+                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                                    setDataAndType(android.net.Uri.parse(uriString), "audio/*")
+                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                 }
+                                viewContext.startActivity(android.content.Intent.createChooser(intent, "Open audio with"))
+                            } catch (error: Exception) {
+                                sendResult(org.json.JSONObject().put("success", false).put("message", "Unable to open audio: " + (error.localizedMessage ?: "No audio player available")))
                             }
                         }
-                    }, "AmityNative")
-                    loadUrl("file:///android_asset/jarvis-earth-hud.html")
-                }
-            },
-            update = { view ->
-                webViewState.value = view
-                if (view.url == null) view.loadUrl("file:///android_asset/jarvis-earth-hud.html")
+                    }
+                }, "AmityNative")
+                loadUrl("file:///android_asset/jarvis-multi-ai.html")
             }
-        )
-    }
+        },
+        update = { view ->
+            webViewState.value = view
+            if (view.url == null) view.loadUrl("file:///android_asset/jarvis-multi-ai.html")
+        }
+    )
 }
 
 '''
@@ -289,7 +266,7 @@ manifest_text = manifest_text.replace(' android:requestLegacyExternalStorage="tr
 manifest.write_text(manifest_text, encoding="utf-8")
 
 if "item { JarvisWebEmbed(onMenuAction, onSos) }" not in main.read_text(encoding="utf-8"):
-    raise SystemExit("JARVIS Earth HUD was not added to the dashboard")
+    raise SystemExit("JARVIS Multi-AI HUD was not added to the dashboard")
 if not asset.is_file():
-    raise SystemExit("JARVIS Earth HUD asset was not packaged")
+    raise SystemExit("JARVIS OS V24.7 HUD asset was not packaged")
 print("Embedded the interactive Earth HUD with native SAF file/audio/folder pickers and native result callbacks.")
