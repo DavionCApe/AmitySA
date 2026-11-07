@@ -75,6 +75,9 @@ jobs:
       - name: Embed the JARVIS Multi-AI web HUD inside the native Android dashboard
         run: python3 scripts/apply_jarvis_web_embed.py
 
+      - name: Replace native dashboard with the primary full-screen Multi-AI HUD
+        run: python3 scripts/apply_jarvis_primary_interface.py
+
       - name: Keep preview shortcut on signup/sign-in screen only
         run: python3 scripts/apply_auth_preview_scope.py
 
