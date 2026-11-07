@@ -1,77 +1,78 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#040911">
-<title>J.A.R.V.I.S. // Multi-AI Environment</title>
-<!-- Three.js r160, Cloudflare CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#020813">
+<title>JARVIS Interface HUD</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-:root{--bg-blackout:#040911;--bg-tactical-panel:rgba(10,20,36,.45);--cyan-laser:#00f0ff;--blue-vector:#0077ff;--glow-plasma-cyan:0 0 14px rgba(0,240,255,.45);--glow-plasma-blue:0 0 25px rgba(0,119,255,.8);--font-terminal:'Orbitron','Share Tech Mono',monospace;--muted:#648a9e}
-*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg-blackout);color:var(--cyan-laser);font-family:var(--font-terminal)}button,input{font:inherit}
-#app{width:100vw;height:100vh;min-height:460px;display:grid;grid-template-columns:320px minmax(0,1fr) 320px;grid-template-rows:62px minmax(0,1fr) 92px;grid-template-areas:"header header header" "left center right" "left footer right";gap:10px;padding:12px;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 45%,rgba(0,60,105,.2),transparent 48%),linear-gradient(135deg,#040911,#06111e 50%,#030810)}
-#app:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.18;background-image:linear-gradient(rgba(0,119,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(0,119,255,.12) 1px,transparent 1px);background-size:40px 40px}
-.panel{position:relative;min-width:0;min-height:0;background:var(--bg-tactical-panel);border:1px solid var(--blue-vector);box-shadow:var(--glow-plasma-cyan),inset 0 0 22px rgba(0,119,255,.06);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.panel:before,.panel:after{content:"";position:absolute;width:12px;height:12px;pointer-events:none}.panel:before{left:-1px;top:-1px;border-left:2px solid var(--cyan-laser);border-top:2px solid var(--cyan-laser)}.panel:after{right:-1px;bottom:-1px;border-right:2px solid var(--cyan-laser);border-bottom:2px solid var(--cyan-laser)}
-.header{grid-area:header;display:flex;justify-content:space-between;align-items:center;padding:0 22px;letter-spacing:2px;font-size:12px}.brand{display:flex;align-items:center;gap:12px;font-weight:700}.dot{width:10px;height:10px;border-radius:50%;background:var(--cyan-laser);box-shadow:0 0 14px var(--cyan-laser);animation:blink 2s infinite}.header-right{display:flex;gap:24px;color:var(--muted);font:11px 'Share Tech Mono',monospace}.header-right strong{color:var(--cyan-laser)}
-.left,.right{display:flex;flex-direction:column;gap:14px;padding:17px}.left{grid-area:left;overflow:auto}.right{grid-area:right}.module{border:1px solid rgba(0,119,255,.3);background:rgba(2,10,22,.55);padding:14px;position:relative}.module-title{font-size:10px;letter-spacing:2px;padding-bottom:12px;border-bottom:1px solid rgba(0,240,255,.2);margin-bottom:13px}.nav{width:100%;padding:14px 11px;margin:5px 0;color:#7ca8bd;background:rgba(0,50,85,.14);border:1px solid transparent;text-align:left;font-size:10px;letter-spacing:1.4px;cursor:pointer;transition:.25s}.nav:before{content:"▹";margin-right:12px}.nav:hover,.nav.active{color:var(--cyan-laser);background:rgba(0,119,255,.15);border-color:var(--blue-vector);box-shadow:inset 3px 0 var(--cyan-laser),var(--glow-plasma-cyan)}.log{height:145px;overflow:auto;font:10px/1.9 'Share Tech Mono',monospace;color:#6f9db0}.log span{display:block}.log span:before{content:"> ";color:var(--cyan-laser)}.log .warn{color:#f3c66c}
-.center{grid-area:center;min-width:0;min-height:0;position:relative;overflow:hidden;background:radial-gradient(ellipse at center,rgba(0,65,105,.13),transparent 65%)}#canvas-container{position:absolute;inset:0}#canvas-container canvas{width:100%;height:100%;display:block}.core-label{position:absolute;top:8%;left:50%;transform:translateX(-50%);text-align:center;z-index:2;pointer-events:none;white-space:nowrap}.eyebrow{font-size:9px;letter-spacing:5px;color:#6495aa}.core-label h1{font-size:clamp(20px,3vw,34px);letter-spacing:8px;margin:12px 0;font-weight:500;text-shadow:0 0 20px rgba(0,240,255,.5)}.sub{font-size:9px;letter-spacing:3px}.core-status{position:absolute;bottom:8%;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:5px;text-shadow:var(--glow-plasma-cyan);pointer-events:none;white-space:nowrap}.telemetry{position:absolute;bottom:15px;left:16px;font:10px/1.8 'Share Tech Mono',monospace;color:#527b90;pointer-events:none}.telemetry.r{left:auto;right:16px;text-align:right}
-.sensor{height:190px;display:grid;place-items:center;overflow:hidden}.crosshair{width:130px;height:130px;border:1px solid rgba(0,240,255,.5);border-radius:50%;position:relative;box-shadow:0 0 22px rgba(0,119,255,.15)}.crosshair:before,.crosshair:after{content:"";position:absolute;background:rgba(0,240,255,.55)}.crosshair:before{width:170%;height:1px;left:-35%;top:50%}.crosshair:after{height:170%;width:1px;top:-35%;left:50%}.crosshair-ring{position:absolute;inset:18px;border:1px dashed var(--cyan-laser);border-radius:50%;animation:spin 12s linear infinite}.sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,transparent 300deg,rgba(0,240,255,.2) 360deg);animation:spin 4s linear infinite}.crosshair-dot{width:8px;height:8px;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:var(--cyan-laser);box-shadow:0 0 15px var(--cyan-laser)}.readout{display:flex;justify-content:space-between;color:var(--muted);font:10px 'Share Tech Mono',monospace;margin-top:10px}.metric{margin:12px 0}.metric-head{display:flex;justify-content:space-between;font-size:9px;color:#8ab0c1;margin-bottom:7px}.track{height:3px;background:rgba(0,119,255,.2)}.fill{height:100%;width:var(--v);background:var(--cyan-laser);box-shadow:0 0 10px var(--cyan-laser);transition:width .5s}.wake,.action{color:var(--cyan-laser);border:1px solid var(--blue-vector);background:rgba(0,70,130,.2);padding:13px 15px;font-size:9px;letter-spacing:2px;cursor:pointer;transition:.25s}.wake{width:100%;margin-top:auto}.wake:hover,.action:hover{background:rgba(0,119,255,.3);box-shadow:var(--glow-plasma-cyan)}.wake.enabled{background:rgba(0,119,255,.25);color:white}
-.footer{grid-area:footer;display:flex;gap:10px;align-items:center;padding:12px}.command{flex:1;min-width:0;display:flex;align-items:center;gap:12px;border:1px solid rgba(0,240,255,.4);background:rgba(0,10,24,.75);padding:0 15px;height:48px}.command input{flex:1;min-width:0;border:0;outline:0;color:var(--cyan-laser);background:transparent;font:12px 'Share Tech Mono',monospace}.command input::placeholder{color:#52788b}.footer .action{height:48px;min-width:72px}
-.app-processing .dot{background:#0077ff;box-shadow:0 0 18px #0077ff}.app-processing .core-label h1{color:#63aaff;text-shadow:0 0 25px #0077ff}.app-processing .core-status{color:#268cff;text-shadow:0 0 20px #0077ff}
-@keyframes spin{to{transform:rotate(360deg)}}@keyframes blink{50%{opacity:.35}}
-@media(max-width:1050px){#app{grid-template-columns:260px minmax(0,1fr);grid-template-rows:58px minmax(0,1fr) 85px;grid-template-areas:"header header" "left center" "left footer"}.right{display:none}}
-@media(max-width:700px){#app{grid-template-columns:minmax(0,1fr);grid-template-rows:55px minmax(0,1fr) auto 75px;grid-template-areas:"header" "center" "left" "footer";gap:7px;padding:7px}.left{max-height:155px;padding:10px;display:grid;grid-template-columns:1fr 1fr;overflow:auto}.left .module:last-child{display:none}.header{padding:0 10px;font-size:9px}.header-right{gap:8px;font-size:9px}.footer{padding:6px;gap:5px}.footer .action{min-width:50px;padding:8px;font-size:8px}.command{padding:0 8px;gap:6px}.command input{font-size:10px}.core-label{top:5%}.core-status{bottom:5%}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+:root{--neon-cyan:#00f3ff;--neon-blue:#0066ff;--bg-dark:#020813;--glow:0 0 8px rgba(0,243,255,.6),0 0 15px rgba(0,243,255,.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;min-height:100%;overflow:hidden}
+body{background-color:var(--bg-dark);color:var(--neon-cyan);font-family:'Share Tech Mono',monospace;position:relative;background-image:linear-gradient(rgba(0,102,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,102,255,.05) 1px,transparent 1px);background-size:30px 30px}
+body:before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(600px,100vw);height:min(600px,100vw);background:radial-gradient(circle,rgba(0,243,255,.15) 0%,transparent 70%);pointer-events:none;z-index:0}
+.hud-container{position:relative;width:100%;height:100%;min-height:0;padding:clamp(10px,2vw,20px);display:grid;grid-template-columns:minmax(190px,300px) minmax(180px,1fr) minmax(190px,300px);grid-template-rows:80px minmax(0,1fr);gap:clamp(10px,2vw,20px);z-index:1}
+.hud-header{grid-column:1/-1;border-bottom:1px solid var(--neon-cyan);box-shadow:0 4px 10px rgba(0,243,255,.1);display:flex;justify-content:space-between;align-items:center;padding:0 10px;text-shadow:var(--glow);min-width:0}
+.header-title{font-size:clamp(16px,2.2vw,24px);letter-spacing:clamp(1px,.3vw,3px);white-space:nowrap}
+.header-stats{font-size:clamp(10px,1.2vw,14px);text-align:right;line-height:1.4;white-space:nowrap}
+.hud-module{background:rgba(2,8,19,.72);border:1px solid rgba(0,243,255,.3);position:relative;padding:15px;box-shadow:inset 0 0 15px rgba(0,102,255,.1);min-height:0}
+.hud-module:before,.hud-module:after{content:'';position:absolute;width:8px;height:8px;border-color:var(--neon-cyan);border-style:solid;box-shadow:var(--glow)}
+.hud-module:before{top:-1px;left:-1px;border-width:2px 0 0 2px}.hud-module:after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.module-title{font-size:12px;letter-spacing:1px;margin-bottom:10px;color:rgba(0,243,255,.7);border-bottom:1px dashed rgba(0,243,255,.3);padding-bottom:4px}
+.left-sidebar,.right-sidebar{display:flex;flex-direction:column;gap:20px;min-height:0;min-width:0}
+.data-row{display:flex;justify-content:space-between;gap:8px;font-size:clamp(10px,1vw,13px);margin-bottom:8px}
+.data-row span:first-child{color:rgba(0,243,255,.75)}.data-value{color:#fff;text-shadow:var(--glow);text-align:right;overflow-wrap:anywhere}
+.center-core{display:flex;justify-content:center;align-items:center;position:relative;min-width:0;min-height:0}
+.holo-ring{width:min(300px,70vw,60vh);height:min(300px,70vw,60vh);border:2px dashed var(--neon-cyan);border-radius:50%;position:relative;box-shadow:var(--glow),inset var(--glow);animation:rotateCW 20s linear infinite}
+.holo-ring:before{content:'';position:absolute;inset:15px;border:1px solid var(--neon-blue);border-radius:50%;border-left-color:transparent;border-right-color:transparent;animation:rotateCCW 10s linear infinite}
+.holo-ring:after{content:'CORE ACTIVE';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(12px,2vw,16px);letter-spacing:2px;text-shadow:var(--glow);white-space:nowrap}
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:80px;margin-top:15px}
+.bar{flex:1;min-width:2px;background:linear-gradient(to top,var(--neon-blue),var(--neon-cyan));box-shadow:0 0 5px rgba(0,243,255,.5);animation:pulseBar 1.5s ease-in-out infinite alternate}
+.bar:nth-child(2n){animation-duration:.8s}.bar:nth-child(3n){animation-duration:1.2s}.bar:nth-child(4n){animation-duration:.5s}
+@keyframes rotateCW{to{transform:rotate(360deg)}}@keyframes rotateCCW{from{transform:rotate(360deg)}to{transform:rotate(0deg)}}@keyframes pulseBar{0%{height:10%}100%{height:100%}}
+@media(max-width:700px){.hud-container{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:62px minmax(130px,1fr) minmax(110px,.8fr);gap:9px;padding:10px}.hud-header{grid-column:1/-1}.center-core{grid-column:1/-1;grid-row:2}.left-sidebar{grid-column:1;grid-row:3}.right-sidebar{grid-column:2;grid-row:3}.left-sidebar,.right-sidebar{gap:8px}.hud-module{padding:9px}.module-title{font-size:10px;margin-bottom:7px}.data-row{font-size:10px;margin-bottom:5px}.bar-chart{height:46px;margin-top:8px}.holo-ring{width:min(160px,42vw,25vh);height:min(160px,42vw,25vh)}}
+@media(max-height:520px) and (min-width:701px){.hud-container{grid-template-rows:54px minmax(0,1fr);padding:8px;gap:8px}.left-sidebar,.right-sidebar{gap:8px}.hud-module{padding:8px}.bar-chart{height:42px}.holo-ring{width:min(210px,48vh);height:min(210px,48vh)}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
-<div id="app">
-<header class="panel header"><div class="brand"><span class="dot"></span><span>AI NODE // ONLINE</span></div><div class="header-right"><span>NETWORK <strong>STABLE</strong></span><span id="clock">--:--:--</span></div></header>
-<aside class="panel left">
-<section class="module"><div class="module-title">ENVIRONMENT SHORTCUTS</div><button class="nav active" data-target="Family">FAMILY</button><button class="nav" data-target="Safe Zones">SAFE ZONES</button><button class="nav" data-target="Live Map">LIVE MAP</button></section>
-<section class="module"><div class="module-title">PROCESS STREAM: SECURE</div><div class="log" id="log"><span>Neural interface initialized</span><span>Vector matrix online</span><span>Core synchronization complete</span><span>Awaiting command input</span></div><button class="nav" id="pick-file">OPEN FILE</button><button class="nav" id="pick-audio">OPEN AUDIO</button><button class="nav" id="pick-folder">OPEN FOLDER</button></section>
+<div class="hud-container">
+<header class="hud-header"><div class="header-title">J.A.R.V.I.S. // OS_V24.7</div><div class="header-stats" id="hud-clock">TIME: --:--:--<br>DATE: --/--/----</div></header>
+<aside class="left-sidebar">
+<section class="hud-module"><div class="module-title">WORLD STATISTICS</div>
+<div class="data-row"><span>SYS_MATRIX</span><span class="data-value" id="sys-status">CHECKING</span></div>
+<div class="data-row"><span>LOAD_FACTOR</span><span class="data-value">--</span></div>
+<div class="data-row"><span>BANDWIDTH</span><span class="data-value">--</span></div>
+<div class="data-row"><span>PROXY_GATE</span><span class="data-value">LOCAL</span></div></section>
+<section class="hud-module" style="flex-grow:1"><div class="module-title">TELEMETRY STREAM</div>
+<div class="data-row"><span>LATITUDE</span><span class="data-value" id="lat-val">AWAITING</span></div>
+<div class="data-row"><span>LONGITUDE</span><span class="data-value" id="lon-val">AWAITING</span></div>
+<div class="data-row"><span>ALTITUDE</span><span class="data-value" id="alt-val">--</span></div>
+<div class="data-row"><span>STATUS</span><span class="data-value" id="loc-status">GPS NOT STARTED</span></div>
+<button id="gps-start" style="margin-top:8px;width:100%;padding:8px;background:transparent;border:1px solid var(--neon-cyan);color:var(--neon-cyan);font:inherit;font-size:11px">ENABLE LOCATION</button></section>
 </aside>
-<main class="panel center"><div id="canvas-container"></div><div class="core-label"><div class="eyebrow">ADVANCED MULTI-AI INTERFACE</div><h1>J.A.R.V.I.S.</h1><div class="sub">NEURAL SYSTEM // 01</div></div><div class="core-status" id="status">STANDBY</div><div class="telemetry">CORE TEMP: <span id="temp">32.4</span>°C<br>MATRIX: SYNCHRONIZED<br>NODE CLUSTER: ACTIVE</div><div class="telemetry r">SECURITY: STATUS UNKNOWN<br>UPLINK: DEMO MODE<br>BUILD: 01.00.26</div></main>
-<aside class="panel right">
-<section class="module"><div class="module-title">SENSOR ARRAY</div><div class="sensor"><div class="crosshair"><div class="sweep"></div><div class="crosshair-ring"></div><div class="crosshair-dot"></div></div></div><div class="readout"><span>TARGET SCAN</span><span id="scan">ACTIVE</span></div></section>
-<section class="module"><div class="module-title">SYSTEM ANALYTICS</div><div class="metric"><div class="metric-head"><span>NEURAL LOAD</span><span id="load-value">28%</span></div><div class="track"><div class="fill" id="load" style="--v:28%"></div></div></div><div class="metric"><div class="metric-head"><span>DATA FLOW</span><span>84%</span></div><div class="track"><div class="fill" style="--v:84%"></div></div></div><div class="metric"><div class="metric-head"><span>CORE INTEGRITY</span><span>DEMO</span></div><div class="track"><div class="fill" style="--v:100%"></div></div></div></section>
-<button class="wake" id="wake">ENABLE WAKE WORD</button></aside>
-<footer class="panel footer"><div class="command"><span>⌘</span><input id="command" placeholder="Command JARVIS..." aria-label="Command JARVIS"></div><button class="action" id="voice">VOICE</button><button class="action" id="send">SEND</button></footer>
+<main class="center-core"><div class="holo-ring" role="img" aria-label="Animated JARVIS core active"></div></main>
+<aside class="right-sidebar">
+<section class="hud-module"><div class="module-title">AUDIO WAVEFREQ</div><div class="bar-chart" aria-label="Decorative audio visualizer">
+<div class="bar" style="height:40%"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:20%"></div><div class="bar" style="height:85%"></div><div class="bar" style="height:50%"></div><div class="bar" style="height:95%"></div><div class="bar" style="height:30%"></div><div class="bar" style="height:60%"></div></div></section>
+<section class="hud-module" style="flex-grow:1"><div class="module-title">DIAGNOSTIC TREE</div>
+<div class="data-row"><span>WEBVIEW</span><span class="data-value" id="web-status">ACTIVE</span></div>
+<div class="data-row"><span>NETWORK</span><span class="data-value" id="net-status">CHECKING</span></div>
+<div class="data-row"><span>BATTERY</span><span class="data-value" id="battery-status">N/A</span></div>
+<div class="data-row"><span>R3_SECTOR</span><span class="data-value">READY</span></div></section>
+</aside>
 </div>
 <script>
-/* UI demo only. Replace simulateProcessing with a real AI request; connect wake-word
-   and voice controls to an actual speech service before production deployment. */
-const app=document.querySelector('#app'),input=document.querySelector('#command'),log=document.querySelector('#log');let processing=false,timer=null,wake=false;
-function addLog(s,w=false){const e=document.createElement('span');e.textContent=s;if(w)e.className='warn';log.append(e);log.scrollTop=log.scrollHeight;while(log.children.length>30)log.firstChild.remove()}
-function setProcessing(v){processing=v;app.classList.toggle('app-processing',v);document.querySelector('#status').textContent=v?'PROCESSING AI RESPONSE':'STANDBY';document.querySelector('#scan').textContent=v?'ANALYZING':'ACTIVE';document.querySelector('#load-value').textContent=v?'92%':'28%';document.querySelector('#load').style.setProperty('--v',v?'92%':'28%')}
-function send(){const s=input.value.trim();if(!s){addLog('Awaiting valid command',true);input.focus();return}clearTimeout(timer);setProcessing(true);addLog('Command received: '+s);addLog('Neural processing initiated');input.value='';timer=setTimeout(()=>{setProcessing(false);addLog('Demo response cycle completed')},4000)}
-document.querySelector('#send').onclick=send;input.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
-document.querySelector('#wake').onclick=e=>{wake=!wake;e.currentTarget.classList.toggle('enabled',wake);e.currentTarget.textContent=wake?'WAKE WORD ENABLED':'ENABLE WAKE WORD';addLog('Wake-word UI '+(wake?'enabled':'disabled')+' (demo only)')};
-document.querySelector('#voice').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){addLog('Speech recognition unavailable in this browser',true);return}const r=new SR();r.lang='en-ZA';r.onresult=e=>{input.value=e.results[0][0].transcript;send()};r.onerror=()=>addLog('Voice input error',true);addLog('Voice input listening');r.start()};
-document.querySelectorAll('.nav[data-target]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');addLog('Opening AmitySA module: '+b.dataset.target);if(window.AmityNative&&window.AmityNative.onFeatureSelected)window.AmityNative.onFeatureSelected(b.dataset.target)});
-document.querySelector('#pick-file').onclick=()=>window.AmityNative?.pickFile?.();
-document.querySelector('#pick-audio').onclick=()=>window.AmityNative?.pickAudio?.();
-document.querySelector('#pick-folder').onclick=()=>window.AmityNative?.pickFolder?.();
-window.jarvisFileResult=function(result){addLog(result?.message||'Native file operation completed',!result?.success);if(result?.success&&result?.name)addLog('Selected: '+result.name)};
-function clock(){document.querySelector('#clock').textContent=new Date().toLocaleTimeString('en-ZA',{hour12:false})}clock();setInterval(clock,1000);
-
-/* Three.js neural point network */
-const host=document.querySelector('#canvas-container'),scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(48,1,.1,100);camera.position.z=13;
-const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));host.appendChild(renderer.domElement);
-const N=180,pos=new Float32Array(N*3),vel=[];for(let i=0;i<N;i++){pos[i*3]=(Math.random()-.5)*17;pos[i*3+1]=(Math.random()-.5)*11;pos[i*3+2]=(Math.random()-.5)*7;vel.push({x:(Math.random()-.5)*.008,y:(Math.random()-.5)*.008,z:(Math.random()-.5)*.004})}
-const ng=new THREE.BufferGeometry();ng.setAttribute('position',new THREE.BufferAttribute(pos,3));const nm=new THREE.PointsMaterial({color:0x00f0ff,size:.035,transparent:true,opacity:.8});scene.add(new THREE.Points(ng,nm));
-const MAX=8000,lp=new Float32Array(MAX*6),lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.BufferAttribute(lp,3));const lm=new THREE.LineBasicMaterial({color:0x0077ff,transparent:true,opacity:.2});const lines=new THREE.LineSegments(lg,lm);scene.add(lines);
-const core=new THREE.Group();scene.add(core);const rings=[];function ring(r,t,c,rot){const m=new THREE.Mesh(new THREE.TorusGeometry(r,t,8,150),new THREE.MeshBasicMaterial({color:c,wireframe:true,transparent:true,opacity:.8}));m.rotation.set(rot[0],rot[1],rot[2]);core.add(m);rings.push(m)}
-ring(2.55,.025,0x0077ff,[.2,.2,0]);ring(2.15,.018,0x00f0ff,[1.1,.3,.4]);ring(1.72,.022,0x0077ff,[.5,1.2,.1]);ring(1.3,.015,0x00f0ff,[1.4,.5,.3]);
-const sphere=new THREE.Mesh(new THREE.SphereGeometry(.72,48,48),new THREE.MeshBasicMaterial({color:0x00f0ff}));core.add(sphere);const glow=new THREE.Mesh(new THREE.SphereGeometry(.92,32,32),new THREE.MeshBasicMaterial({color:0x00aaff,transparent:true,opacity:.08,side:THREE.BackSide}));core.add(glow);const center=new THREE.Mesh(new THREE.SphereGeometry(.28,32,32),new THREE.MeshBasicMaterial({color:0xffffff}));core.add(center);
-const clock3=new THREE.Clock();let elapsed=0;function updateNetwork(active){let count=0,limit=active?2.8:2.35;for(let i=0;i<N;i++){let k=i*3,v=vel[i];pos[k]+=v.x*(active?3:1);pos[k+1]+=v.y*(active?3:1);pos[k+2]+=v.z*(active?3:1);if(Math.abs(pos[k])>9)v.x*=-1;if(Math.abs(pos[k+1])>6)v.y*=-1;if(Math.abs(pos[k+2])>4)v.z*=-1}ng.attributes.position.needsUpdate=true;for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){let a=i*3,b=j*3,dx=pos[a]-pos[b],dy=pos[a+1]-pos[b+1],dz=pos[a+2]-pos[b+2];if(dx*dx+dy*dy+dz*dz<limit*limit&&count<MAX){let o=count++*6;lp[o]=pos[a];lp[o+1]=pos[a+1];lp[o+2]=pos[a+2];lp[o+3]=pos[b];lp[o+4]=pos[b+1];lp[o+5]=pos[b+2]}}lg.setDrawRange(0,count*2);lg.attributes.position.needsUpdate=true;lm.opacity=active?.3+Math.abs(Math.sin(elapsed*12))*.55:.18+Math.sin(elapsed*2)*.06;nm.opacity=active?1:.8;nm.size=active?.055:.035}
-function animate(){requestAnimationFrame(animate);let dt=Math.min(clock3.getDelta(),.05);elapsed+=dt;let active=processing,speed=active?5:1;rings.forEach((r,i)=>{let d=i%2? -1:1;r.rotation.x+=dt*(.10+i*.025)*speed;r.rotation.y+=dt*(.07+i*.02)*speed*d;r.rotation.z+=dt*.035*speed});sphere.scale.setScalar(1+Math.sin(elapsed*(active?24:2))*(active?.09:.035));glow.scale.setScalar(1+Math.sin(elapsed*2.2)*.08);sphere.material.color.setHex(active?(Math.sin(elapsed*13)>0?0x0077ff:0x0054dc):0x00f0ff);glow.material.color.setHex(active?0x0077ff:0x00aaff);core.rotation.y+=dt*(active?.12:.025);updateNetwork(active);renderer.render(scene,camera)}animate();
-const ro=new ResizeObserver(()=>{let w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)});ro.observe(host);
-setInterval(()=>document.querySelector('#temp').textContent=(31+Math.random()*3).toFixed(1),2500);
+'use strict';
+function updateClock(){const now=new Date();const pad=n=>String(n).padStart(2,'0');document.getElementById('hud-clock').innerHTML='TIME: '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds())+'<br>DATE: '+pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();}
+updateClock();setInterval(updateClock,1000);
+function updateNetwork(){const online=navigator.onLine;document.getElementById('sys-status').textContent=online?'ONLINE':'OFFLINE';document.getElementById('net-status').textContent=online?'CONNECTED':'NO NETWORK';}
+updateNetwork();window.addEventListener('online',updateNetwork);window.addEventListener('offline',updateNetwork);
+document.getElementById('gps-start').addEventListener('click',()=>{const status=document.getElementById('loc-status');if(!navigator.geolocation){status.textContent='GPS UNSUPPORTED';return;}status.textContent='REQUESTING PERMISSION';navigator.geolocation.getCurrentPosition(position=>{const c=position.coords;document.getElementById('lat-val').textContent=c.latitude.toFixed(5);document.getElementById('lon-val').textContent=c.longitude.toFixed(5);document.getElementById('alt-val').textContent=c.altitude==null?'N/A':Math.round(c.altitude)+' M';status.textContent='LOCATION AVAILABLE';},error=>{status.textContent=error.code===1?'PERMISSION DENIED':error.code===2?'POSITION UNAVAILABLE':'GPS TIMEOUT';},{enableHighAccuracy:true,timeout:12000,maximumAge:30000});});
+if(navigator.getBattery){navigator.getBattery().then(b=>{const show=()=>document.getElementById('battery-status').textContent=Math.round(b.level*100)+'%'+(b.charging?' CHG':'');show();b.addEventListener('levelchange',show);b.addEventListener('chargingchange',show);}).catch(()=>{});}
+window.addEventListener('error',()=>{document.getElementById('web-status').textContent='JS WARNING';});
 </script>
-</body>
-</html>
+</body></html>
