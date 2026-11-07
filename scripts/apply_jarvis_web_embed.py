@@ -11,7 +11,7 @@ if not main.is_file():
 
 assets = root / "app/src/main/assets"
 assets.mkdir(parents=True, exist_ok=True)
-asset = assets / "jarvis-earth-hud.html"
+asset = assets / "jarvis-multi-ai.html"
 asset.write_text(html_source.read_text(encoding="utf-8"), encoding="utf-8")
 
 source = main.read_text(encoding="utf-8")
@@ -268,5 +268,5 @@ manifest.write_text(manifest_text, encoding="utf-8")
 if "item { JarvisWebEmbed(onMenuAction, onSos) }" not in main.read_text(encoding="utf-8"):
     raise SystemExit("JARVIS Multi-AI HUD was not added to the dashboard")
 if not asset.is_file():
-    raise SystemExit("JARVIS Earth HUD asset was not packaged")
+    raise SystemExit("JARVIS OS V24.7 HUD asset was not packaged")
 print("Embedded the interactive Earth HUD with native SAF file/audio/folder pickers and native result callbacks.")
