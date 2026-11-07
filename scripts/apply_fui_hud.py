@@ -38,12 +38,12 @@ private fun AmityHudBackdrop() {
         ),
         label = "hudScanProgress"
     )
-    // Arc-reactor breathing loop: 85% -> 105% -> 85% over 1500 ms.
+    // Arc-reactor breathing loop: 85% -> 105% -> 85% in a 1500 ms full cycle.
     val reactorBreath by motion.animateFloat(
         initialValue = 0.85f,
         targetValue = 1.05f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = FastOutSlowInEasing),
+            animation = tween(750, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "reactorBreath"
@@ -79,7 +79,7 @@ private fun AmityHudBackdrop() {
         // Arc-reactor core: concentric cyan/violet rings and segmented energy arcs.
         val center = Offset(size.width * 0.5f, size.height * 0.43f)
         val baseRadius = minOf(size.width, size.height) * 0.105f
-        val radius = baseRadius * reactorBreath
+        val radius = baseRadius
         drawCircle(cyan.copy(alpha = 0.12f), radius * 1.42f, center, style = Stroke(2.0.dp.toPx()))
         drawCircle(cyan.copy(alpha = 0.34f), radius, center, style = Stroke(2.2.dp.toPx()))
         drawCircle(violet.copy(alpha = 0.42f), radius * 0.72f, center, style = Stroke(1.4.dp.toPx()))
