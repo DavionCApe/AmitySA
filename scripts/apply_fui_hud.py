@@ -21,7 +21,6 @@ for line in [
     "import androidx.compose.animation.core.LinearEasing",
     "import androidx.compose.animation.core.FastOutSlowInEasing",
     "import androidx.compose.ui.geometry.Size",
-    "import androidx.compose.ui.graphics.drawscope.drawArc",
     "import androidx.compose.ui.graphics.graphicsLayer"
 ]:
     add_import(line)
