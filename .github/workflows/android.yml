@@ -144,8 +144,20 @@ jobs:
       - name: Make Gradle launcher executable
         run: chmod +x gradlew
 
-      - name: Apply Kotlin and Gradle formatting with Spotless
-        run: ./gradlew spotlessApply --no-daemon
+      - name: Apply available Kotlin and Gradle formatting
+        shell: bash
+        run: |
+          set -euo pipefail
+          tasks="$(./gradlew tasks --all --no-daemon --console=plain)"
+          if grep -Eq '^[[:space:]]*spotlessApply([[:space:]]|$)' <<< "$tasks"; then
+            echo "Running configured Spotless formatter."
+            ./gradlew spotlessApply --no-daemon
+          elif grep -Eq '^[[:space:]]*ktlintFormat([[:space:]]|$)' <<< "$tasks"; then
+            echo "Running configured ktlint formatter."
+            ./gradlew ktlintFormat --no-daemon
+          else
+            echo "::notice::No Spotless or ktlint formatter task is configured; skipping formatting rather than failing the APK build."
+          fi
 
       - name: Build installable debug APKs
         run: ./gradlew assembleDirectDebug assemblePlayDebug --no-daemon
