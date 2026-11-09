@@ -2,7 +2,7 @@ name: AmitySA Android APK
 
 on:
   push:
-    branches: [main, design/neon-glass-ui]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -100,6 +100,9 @@ jobs:
 
       - name: Apply advanced JARVIS holographic navigation
         run: python3 scripts/apply_jarvis_advanced_navigation.py
+
+      - name: Apply JARVIS HUD and AmitySA artwork globally across all screens
+        run: python3 scripts/apply_global_jarvis_ui.py
 
       - name: Verify the final home-screen logo and resource
         shell: bash
