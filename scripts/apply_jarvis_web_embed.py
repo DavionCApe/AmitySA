@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 
 root = Path.cwd()
-html_source = root / "web/jarvis-multi-ai.html"
+html_source = root / "web/jarvis-earth-hud.html"
 if not html_source.is_file():
     raise SystemExit("web/jarvis-multi-ai.html is missing")
 main = root / "app/src/main/java/com/amitysa/app/MainActivity.kt"
@@ -11,7 +11,7 @@ if not main.is_file():
 
 assets = root / "app/src/main/assets"
 assets.mkdir(parents=True, exist_ok=True)
-asset = assets / "jarvis-multi-ai.html"
+asset = assets / "jarvis-earth-hud.html"
 asset.write_text(html_source.read_text(encoding="utf-8"), encoding="utf-8")
 
 source = main.read_text(encoding="utf-8")
@@ -183,7 +183,7 @@ private fun JarvisWebEmbed(
                         }
                     }
                 }, "AmityNative")
-                loadUrl("file:///android_asset/jarvis-multi-ai.html")
+                loadUrl("file:///android_asset/jarvis-earth-hud.html")
             }
         },
         update = { view ->
@@ -268,5 +268,9 @@ manifest.write_text(manifest_text, encoding="utf-8")
 if "item { JarvisWebEmbed(onMenuAction, onSos) }" not in main.read_text(encoding="utf-8"):
     raise SystemExit("JARVIS Multi-AI HUD was not added to the dashboard")
 if not asset.is_file():
-    raise SystemExit("JARVIS OS V24.7 HUD asset was not packaged")
-print("Embedded the interactive Earth HUD with native SAF file/audio/folder pickers and native result callbacks.")
+    raise SystemExit("JARVIS Earth HUD asset was not packaged")
+hud = asset.read_text(encoding="utf-8")
+for required in ('id="menu"', 'data-feature="Family"', 'data-feature="Settings"', 'id="emergency"'):
+    if required not in hud:
+        raise SystemExit(f"JARVIS Earth HUD is missing required navigation control: {required}")
+print("Embedded the interactive JARVIS Earth HUD with a visible radial menu, family/safe-zone/map/settings controls, SOS action, and native Android callbacks.")
