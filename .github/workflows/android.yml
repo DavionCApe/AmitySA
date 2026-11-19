@@ -72,8 +72,22 @@ jobs:
 
       - name: Redesign the AmitySA home dashboard as a JARVIS command centre
         run: python3 scripts/apply_dashboard_redesign.py
-      - name: Embed the JARVIS Multi-AI web HUD inside the native Android dashboard
+      - name: Embed the interactive JARVIS Earth HUD and radial menu inside the native Android dashboard
         run: python3 scripts/apply_jarvis_web_embed.py
+
+      - name: Verify the packaged JARVIS navigation and emergency controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          hud=app/src/main/assets/jarvis-earth-hud.html
+          test -f "$hud"
+          grep -Fq 'id="menu"' "$hud"
+          grep -Fq 'data-feature="Family"' "$hud"
+          grep -Fq 'data-feature="Safe Zones"' "$hud"
+          grep -Fq 'data-feature="Live Map"' "$hud"
+          grep -Fq 'data-feature="Settings"' "$hud"
+          grep -Fq 'id="emergency"' "$hud"
+          echo "Verified visible JARVIS radial menu, core feature buttons, and SOS control."
 
       - name: Replace native dashboard with the primary full-screen Multi-AI HUD
         run: python3 scripts/apply_jarvis_primary_interface.py
