@@ -36,9 +36,9 @@ private fun HomeScreen(
 source = source[:start] + replacement + source[end:]
 main.write_text(source, encoding="utf-8")
 
-asset = Path("app/src/main/assets/jarvis-multi-ai.html")
+asset = Path("app/src/main/assets/jarvis-earth-hud.html")
 if not asset.is_file():
-    raise SystemExit("JARVIS OS V24.7 HTML asset was not packaged")
+    raise SystemExit("JARVIS Earth HUD HTML asset was not packaged")
 if "JarvisWebEmbed(" not in source:
     raise SystemExit("Primary dashboard is not connected to the supplied JARVIS HUD")
 if "private fun HomeScreen(" not in source:
