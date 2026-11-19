@@ -83,3 +83,79 @@ once(
     "remove saved details control")
 p.write_text(s, encoding="utf-8")
 print("Remember-login feature integrated.")
+
+# The archive contained a stale placeholder MainActivity in this file.
+# Replace it with the encrypted credential store expected by MainActivity.kt.
+store = Path("app/src/main/java/com/amitysa/app/RememberLoginStore.kt")
+store.write_text("""package com.amitysa.app
+
+import android.content.Context
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import android.util.Base64
+import java.security.KeyStore
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
+
+data class SavedLogin(val email: String, val password: String)
+
+class RememberLoginStore(context: Context) {
+    private val prefs = context.getSharedPreferences("amity_saved_login", Context.MODE_PRIVATE)
+    private val alias = "amitysa_remember_login_key"
+
+    fun save(email: String, password: String) {
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
+        val encrypted = cipher.doFinal(password.toByteArray(Charsets.UTF_8))
+        prefs.edit()
+            .putString("email", email)
+            .putString("iv", Base64.encodeToString(cipher.iv, Base64.NO_WRAP))
+            .putString("password", Base64.encodeToString(encrypted, Base64.NO_WRAP))
+            .apply()
+    }
+
+    fun load(): SavedLogin? {
+        val email = prefs.getString("email", null) ?: return null
+        val ivText = prefs.getString("iv", null) ?: return null
+        val passwordText = prefs.getString("password", null) ?: return null
+        return try {
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(
+                Cipher.DECRYPT_MODE,
+                getOrCreateKey(),
+                GCMParameterSpec(128, Base64.decode(ivText, Base64.NO_WRAP))
+            )
+            val password = cipher.doFinal(Base64.decode(passwordText, Base64.NO_WRAP))
+                .toString(Charsets.UTF_8)
+            SavedLogin(email, password)
+        } catch (_: Exception) {
+            clear()
+            null
+        }
+    }
+
+    fun clear() {
+        prefs.edit().clear().apply()
+    }
+
+    private fun getOrCreateKey(): SecretKey {
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+        (keyStore.getKey(alias, null) as? SecretKey)?.let { return it }
+        val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+        generator.init(
+            KeyGenParameterSpec.Builder(
+                alias,
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            )
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setRandomizedEncryptionRequired(true)
+                .build()
+        )
+        return generator.generateKey()
+    }
+}
+""", encoding="utf-8")
+print("Installed encrypted Android Keystore-backed RememberLoginStore.")
