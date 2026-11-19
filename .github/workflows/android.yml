@@ -40,6 +40,9 @@ jobs:
       - name: Replace old launcher icon with new AmitySA artwork
         run: python3 scripts/apply_launcher_icon.py
 
+      - name: Replace legacy Android splash artwork with the new AmitySA shield
+        run: python3 scripts/apply_splash_branding.py
+
       - name: Apply Kotlin compile fixes
         run: python3 scripts/apply_build_fixes.py
 
