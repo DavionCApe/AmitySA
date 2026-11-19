@@ -4,7 +4,7 @@ import re
 root = Path.cwd()
 html_source = root / "web/jarvis-earth-hud.html"
 if not html_source.is_file():
-    raise SystemExit("web/jarvis-multi-ai.html is missing")
+    raise SystemExit("web/jarvis-earth-hud.html is missing")
 main = root / "app/src/main/java/com/amitysa/app/MainActivity.kt"
 if not main.is_file():
     raise SystemExit("AmitySA MainActivity.kt was not found")
@@ -188,7 +188,7 @@ private fun JarvisWebEmbed(
         },
         update = { view ->
             webViewState.value = view
-            if (view.url == null) view.loadUrl("file:///android_asset/jarvis-multi-ai.html")
+            if (view.url == null) view.loadUrl("file:///android_asset/jarvis-earth-hud.html")
         }
     )
 }
